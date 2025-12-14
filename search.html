@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base href="/">
+    <meta charset="UTF-8">
+    <title>Search - BrandConnect</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="icon" href="{{ url_for('static', filename='icon.png') }}" type="image/png">
+    <style>
+        /* Container Styling */
+        .search-box-container { text-align: center; margin-bottom: 40px; position: relative; }
+        
+        /* Input Styling */
+        .search-main-input { 
+            padding: 15px 20px; 
+            width: 100%; 
+            max-width: 600px; 
+            border-radius: 30px; 
+            border: 2px solid #3e4042; 
+            background: #242526; 
+            color: white; 
+            font-size: 1.1rem; 
+            outline: none; 
+            transition: all 0.3s ease;
+        }
+
+        .search-main-input:focus { 
+            border-color: #e67e22; 
+            box-shadow: 0 0 10px rgba(230, 126, 34, 0.2); 
+            background: #2c3e50;
+        }
+
+        /* Result Card Animation & Styling */
+        .result-card { 
+            background: #242526; 
+            padding: 20px; 
+            border-radius: 12px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: space-between; 
+            margin-bottom: 15px; 
+            opacity: 0; 
+            transform: translateY(10px);
+            animation: slideUp 0.3s ease-out forwards;
+            border: 1px solid #3e4042;
+        }
+
+        .result-card:hover {
+            border-color: #7f8c8d;
+            background: #2c3e50;
+        }
+
+        .res-avatar { 
+            width: 60px; 
+            height: 60px; 
+            border-radius: 50%; 
+            object-fit: cover; 
+            margin-right: 20px; 
+            background: #3a3b3c; 
+            border: 2px solid #3e4042;
+        }
+
+        .res-info { flex-grow: 1; }
+
+        @keyframes slideUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Loading Spinner Animation */
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #e67e22;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+            display: none; /* Hidden by default */
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo"><h1>BrandConnect</h1></div>
+        <button class="menu-toggle" id="menuToggle">&#9776;</button>
+        <nav>
+            <ul>
+                {% if session['role'] == 'influencer' %}
+                <li><a href="{{ url_for('influencer_dashboard') }}">Dashboard</a></li>
+                {% else %}
+                <li><a href="{{ url_for('brand_dashboard') }}">Dashboard</a></li>
+                {% endif %}
+                <li><a href="{{ url_for('feed') }}">Feed</a></li>
+                <li><a href="{{ url_for('search') }}" style="color: #e67e22;">Search</a></li>
+                <li><a href="{{ url_for('messages_inbox') }}">Messages</a></li>
+            </ul>
+        </nav>
+        <a href="{{ url_for('logout') }}" class="btn-login">Logout</a>
+    </header>
+
+    <div class="dashboard-content">
+        <div class="search-box-container">
+            <h2 style="margin-bottom: 20px;">Find Brands & Creators</h2>
+            
+            <div style="position: relative; max-width: 600px; margin: 0 auto;">
+                <input type="text" id="ajaxSearchInput" class="search-main-input" placeholder="Type name, handle, or industry..." autocomplete="off">
+                <div id="searchSpinner" class="spinner" style="position: absolute; right: 20px; top: 18px;"></div>
+            </div>
+            
+            <p style="margin-top: 10px; color: #7f8c8d; font-size: 0.9rem;">
+                Try searching for "MTN", "Music", or "@handle"
+            </p>
+        </div>
+
+        <div id="resultsContainer">
+            <div style="text-align: center; color: #7f8c8d; margin-top: 50px;">
+                <p>Start typing to explore the marketplace.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/script.js"></script>
+    <script>
+        const searchInput = document.getElementById('ajaxSearchInput');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const spinner = document.getElementById('searchSpinner');
+        let debounceTimer; // Variable to control the delay
+
+        searchInput.addEventListener('input', (e) => {
+            const query = e.target.value.trim();
+            
+            // 1. STOP previous timer (This fixes the glitch!)
+            clearTimeout(debounceTimer);
+
+            if (query.length < 2) {
+                resultsContainer.innerHTML = '<div style="text-align: center; color: #7f8c8d; margin-top: 50px;"><p>Keep typing...</p></div>';
+                spinner.style.display = 'none';
+                return;
+            }
+
+            // Show loading spinner
+            spinner.style.display = 'block';
+
+            // 2. START new timer (Wait 300ms before sending request)
+            debounceTimer = setTimeout(() => {
+                performSearch(query);
+            }, 300); 
+        });
+
+        function performSearch(query) {
+            fetch(`/api/search?q=${query}`)
+                .then(response => response.json())
+                .then(data => {
+                    spinner.style.display = 'none'; // Hide spinner
+                    resultsContainer.innerHTML = ''; // Clear old results
+
+                    if (data.length === 0) {
+                        resultsContainer.innerHTML = `
+                            <div style="text-align: center; padding: 40px;">
+                                <h3 style="color: #7f8c8d;">No results found for "${query}"</h3>
+                                <p style="color: #555;">Check your spelling or try a different keyword.</p>
+                            </div>
+                        `;
+                        return;
+                    }
+
+                    // Loop through results and create cards
+                    data.forEach((item, index) => {
+                        const profileUrl = `/user/${item.Role}/${item.ID}`;
+                        const chatUrl = `/messages/${item.Role}/${item.ID}`;
+                        
+                        // Use default placeholder if Pic is null
+                        const imgSrc = item.Pic ? item.Pic : 'https://via.placeholder.com/60?text=' + item.Name.charAt(0);
+
+                        // Stagger animation delay
+                        const delay = index * 0.1; 
+
+                        const cardHTML = `
+                            <div class="result-card" style="animation-delay: ${delay}s">
+                                <div style="display: flex; align-items: center;">
+                                    <img src="${imgSrc}" class="res-avatar" onerror="this.src='https://via.placeholder.com/60?text=?'">
+                                    <div class="res-info">
+                                        <h3 style="margin: 0; color: white;">
+                                            <a href="${profileUrl}" style="color: white; text-decoration: none;">${item.Name}</a>
+                                        </h3>
+                                        <div style="display: flex; align-items: center; gap: 10px; margin-top: 5px;">
+                                            <span style="background: #e67e22; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem;">${item.Role}</span>
+                                            <span style="color: #b0b3b8; font-size: 0.85rem;">${item.Info}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div>
+                                    <a href="${profileUrl}"><button class="btn-login" style="background: #34495e; padding: 5px 15px;">View Profile</button></a>
+                                    <a href="${chatUrl}"><button class="btn-login" style="margin-left: 10px; padding: 5px 15px;">Message</button></a>
+                                </div>
+                            </div>
+                        `;
+                        resultsContainer.innerHTML += cardHTML;
+                    });
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    spinner.style.display = 'none';
+                    resultsContainer.innerHTML = '<p style="text-align: center; color: #e74c3c;">Something went wrong. Please try again.</p>';
+                });
+        }
+    </script>
+</body>
+</html>

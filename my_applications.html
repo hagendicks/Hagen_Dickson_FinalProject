@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base href="/">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Applications - BrandConnect</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="icon" href="{{ url_for('static', filename='icon.png') }}" type="image/png">
+</head>
+<body>
+    <header>
+        <div class="logo">
+            <h1>BrandConnect</h1>
+        </div>
+        <button class="menu-toggle" id="menuToggle">&#9776;</button>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('influencer_dashboard') }}">Dashboard</a></li>
+                <li><a href="{{ url_for('profile') }}">Profile</a></li>
+                <li><a href="{{ url_for('feed') }}">Feed</a></li>
+                <li><a href="{{ url_for('my_applications_route') }}" style="color: #e67e22;">Applications</a></li>
+            </ul>
+        </nav>
+        <a href="{{ url_for('logout') }}" class="btn-login">Logout</a>
+    </header>
+
+    <div class="dashboard-content">
+        <h2 id="welcome-msg">Application History</h2>
+        <p class="subtitle">Track the status of your sponsorships and contracts.</p>
+
+        <div class="card" style="margin-top: 30px; width: 100%; max-width: 100%;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Date Applied</th>
+                        <th>Campaign Name</th>
+                        <th>Brand</th>
+                        <th>Status</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for app in applications %}
+                    <tr>
+                        <td>{{ app.Date_Applied }}</td>
+                        <td>{{ app.CampaignName }}</td>
+                        <td>{{ app.Brandname }}</td>
+                        {% if app.Status == 'Approved' %}
+                        <td class="status-approved">{{ app.Status }}</td>
+                        {% elif app.Status == 'Rejected' %}
+                        <td style="color: #e74c3c; font-weight: bold;">{{ app.Status }}</td>
+                        {% else %}
+                        <td class="status-pending">{{ app.Status }}</td>
+                        {% endif %}
+
+                        <td>
+                            {% if app.Status == 'Approved' %}
+                            <a href="{{ url_for('contract_route') }}" style="font-size: 0.9rem;">View Contract</a>
+                            {% else %}
+                            <span style="color: #bdc3c7;">Waiting</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5">No applications found.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <footer>
+        <p>&copy; 2025 BrandConnect Marketplace</p>
+    </footer>
+    <script src="/script.js"></script>
+</body>
+</html>

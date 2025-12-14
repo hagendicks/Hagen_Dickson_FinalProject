@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <base href="/">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sponsorship Agreement - BrandConnect</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="icon" href="{{ url_for('static', filename='icon.png') }}" type="image/png">
+    <style>
+        .contract-paper {
+            background-color: #ecf0f1;
+            color: #2c3e50;
+            padding: 60px;
+            max-width: 900px;
+            margin: 0 auto;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            font-family: 'Merriweather', serif;
+        }
+
+        .contract-paper h2,
+        .contract-paper h3 {
+            color: #2c3e50;
+            text-align: center;
+            border-bottom: 2px solid #2c3e50;
+            padding-bottom: 10px;
+        }
+
+        .contract-section {
+            margin-bottom: 25px;
+        }
+
+        /* ALERT BANNER STYLE */
+
+        #termination-banner {
+            display: none;
+            /* Hidden by default */
+            background-color: #c0392b;
+            color: white;
+            text-align: center;
+            padding: 15px;
+            font-family: 'Roboto', sans-serif;
+            font-weight: bold;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.5s ease-out;
+        }
+
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+
+            .contract-paper,
+            .contract-paper * {
+                visibility: visible;
+            }
+
+            .contract-paper {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 20px;
+                box-shadow: none;
+            }
+
+            button,
+            header,
+            footer,
+            #termination-banner {
+                display: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo">
+            <h1>BrandConnect</h1>
+        </div>
+        <a href="{{ url_for('my_applications_route') }}" class="btn-login" style="background-color: #7f8c8d;">&larr;
+            Back to Applications</a>
+    </header>
+
+    <div class="dashboard-content">
+
+        <div id="termination-banner">
+            ⚠️ ACTION REQUIRED: The Brand has requested termination of this contract. Please contact support
+            immediately.
+        </div>
+
+        <div class="contract-paper">
+            <h2>INFLUENCER SPONSORSHIP AGREEMENT</h2>
+            <p style="text-align: center; margin-bottom: 30px;">This Agreement is entered into on
+                <strong>Today</strong>.</p>
+
+            <div class="contract-section">
+                <h3>1. PARTIES</h3>
+                <p><strong>Brand:</strong> [Brand Name] ("Sponsor")</p>
+                <p><strong>Influencer:</strong> [Your Name] ("Creator")</p>
+            </div>
+            <div class="contract-section">
+                <h3>5. TERMINATION</h3>
+                <p>This contract is valid only while the Campaign Status is 'Active'.</p>
+            </div>
+
+            <div
+                style="margin-top: 50px; border-top: 1px solid #2c3e50; padding-top: 20px; display: flex; justify-content: space-between;">
+                <div>
+                    <p>__________________________</p>
+                    <p>Signed: Brand Representative</p>
+                </div>
+                <div>
+                    <p>__________________________</p>
+                    <p>Signed: Digital Signature</p>
+                </div>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <button class="btn-login" onclick="window.print()">Download PDF Copy</button>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>&copy; 2025 BrandConnect Marketplace</p>
+    </footer>
+    <script src="/script.js"></script>
+</body>
+
+</html>

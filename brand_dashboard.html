@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base href="/">
+    <meta charset="UTF-8">
+    <title>Brand Dashboard - BrandConnect</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="icon" href="{{ url_for('static', filename='icon.png') }}" type="image/png">
+</head>
+<body>
+    <header>
+        <div class="logo"><h1>BrandConnect</h1></div>
+        <button class="menu-toggle" id="menuToggle">&#9776;</button>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('brand_dashboard') }}" style="color: #e67e22;">Dashboard</a></li>
+                <li><a href="{{ url_for('create_campaign') }}">Post Campaign</a></li>
+                <li><a href="{{ url_for('feed') }}">Feed</a></li>
+                <li><a href="{{ url_for('search') }}">Search</a></li> 
+                <li><a href="{{ url_for('messages_inbox') }}">Messages</a></li>
+            </ul>
+        </nav>
+        <a href="{{ url_for('logout') }}" class="btn-login">Logout</a>
+    </header>
+
+    <div class="dashboard-content">
+        <h2 id="welcome-msg">Welcome, {{ name }}!</h2>
+        <p class="subtitle">Overview of your marketing performance.</p>
+
+        <div class="cards-container stats-container">
+            <div class="card">
+                <h3>Active Campaigns</h3>
+                <p style="font-size: 2.5rem; color: #f1c40f; margin-top: 10px;">{{ active_count }}</p>
+            </div>
+            <div class="card">
+                <h3>Total Applicants</h3>
+                <p style="font-size: 2.5rem; color: #2ecc71; margin-top: 10px;">{{ applicants|length }}</p>
+            </div>
+        </div>
+
+        <h3>Recent Applicants</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Influencer</th>
+                    <th>Handle</th>
+                    <th>Followers</th>
+                    <th>Campaign</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for applicant in applicants %}
+                <tr id="row-{{ applicant.CAM_ID }}">
+                    <td>
+                        <a href="{{ url_for('public_profile', role='Influencer', id=applicant.InfluencerID) }}" style="color: #ecf0f1; font-weight: bold; text-decoration: underline;">{{ applicant.InfluencerName }}</a>
+                    </td>
+                    <td>{{ applicant.Handle }}</td>
+                    <td>{{ applicant.Followers }}</td>
+                    <td>{{ applicant.CampaignName }}</td>
+                    
+                    <td id="status-{{ applicant.CAM_ID }}" class="status-{{ applicant.CampaignStatus|lower }}">
+                        {{ applicant.CampaignStatus }}
+                    </td>
+
+                    <td id="actions-{{ applicant.CAM_ID }}">
+                        {% if applicant.CampaignStatus == 'Pending' %}
+                            <button onclick="updateStatus('{{ applicant.CAM_ID }}', 'Approved')" class="btn-login" style="padding: 5px 10px; background-color: #2ecc71; font-size: 0.8rem;">Approve</button>
+                            <button onclick="updateStatus('{{ applicant.CAM_ID }}', 'Rejected')" class="btn-login" style="padding: 5px 10px; background-color: #e74c3c; font-size: 0.8rem; margin-left: 5px;">Deny</button>
+                        {% else %}
+                            <span style="color: #bdc3c7;">Decided</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="6">No recent applicants found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <script src="/script.js"></script>
+    
+    <script>
+        function updateStatus(appId, action) {
+            const statusCell = document.getElementById(`status-${appId}`);
+            const actionCell = document.getElementById(`actions-${appId}`);
+            const row = document.getElementById(`row-${appId}`);
+
+            statusCell.innerText = "Updating...";
+            statusCell.style.color = "#bdc3c7";
+
+            fetch('/api/application/status', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ app_id: appId, action: action })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    statusCell.innerText = data.new_status;
+
+                    if(data.new_status === 'Approved') {
+                        statusCell.style.color = "#2ecc71";
+                        statusCell.style.fontWeight = "bold";
+                    } else {
+                        statusCell.style.color = "#e74c3c";
+                        statusCell.style.fontWeight = "bold";
+                    }
+
+                    actionCell.innerHTML = '<span style="color: #bdc3c7;">Just Now</span>';
+                } else {
+                    alert("Error updating status: " + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("An unexpected error occurred.");
+            });
+        }
+    </script>
+</body>
+</html>

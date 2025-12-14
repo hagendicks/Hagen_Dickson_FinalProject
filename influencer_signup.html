@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base href="/">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creator Profile Setup</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="icon" href="{{ url_for('static', filename='icon.png') }}" type="image/png">
+    <style>
+        .error-msg { color: #e74c3c; font-size: 0.85rem; margin-top: 5px; display: none; }
+        .input-error { border-color: #e74c3c !important; }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-box" style="width: 500px;">
+            <h2>Creator Profile Setup</h2>
+            <p>Tell us about your content.</p>
+
+            <form action="/signup/influencer" method="POST" id="signupForm" onsubmit="return validateForm()">
+                <div class="input-group">
+                    <label>Full Name</label>
+                    <input type="text" name="full_name" id="fullName" required>
+                </div>
+                
+                <div class="input-group">
+                    <label>Email (Your Login)</label>
+                    <input type="email" name="email" id="email" required oninput="clearError('email', 'emailError')">
+                    <span id="emailError" class="error-msg">That email doesn't look quite right. Example: name@mail.com</span>
+                </div>
+                
+                <div class="input-group">
+                    <label>Main Handle (@username)</label>
+                    <input type="text" name="handle" id="username" placeholder="@ghana_foodie" required>
+                </div>
+                
+                <div class="input-group">
+                    <label>Password</label>
+                    <input type="password" name="password" id="password" required onkeyup="checkPassword(); clearError('password', 'passStrengthError')">
+                    <span id="passStrengthError" class="error-msg">Your password needs to be stronger (see rules below).</span>
+                </div>
+
+                <div class="password-strength-container" id="strengthContainer" style="display: none;">
+                    <div class="strength-meter">
+                        <div class="strength-bar" id="strengthBar"></div>
+                    </div>
+                    <p class="strength-text" id="strengthText">Weak</p>
+                    <ul class="validation-list">
+                        <li id="rule-length" class="validation-item">8–12 characters long</li>
+                        <li id="rule-upper" class="validation-item">At least one Uppercase (A-Z)</li>
+                        <li id="rule-lower" class="validation-item">At least one Lowercase (a-z)</li>
+                        <li id="rule-number" class="validation-item">At least one Number (0-9)</li>
+                        <li id="rule-special" class="validation-item">At least one Special Char (!@#$...)</li>
+                    </ul>
+                </div>
+
+                <div class="input-group">
+                    <label>Confirm Password</label>
+                    <input type="password" name="confirm_password" id="confirmPassword" required onkeyup="checkMatch(); clearError('confirmPassword', 'matchError')">
+                    <span id="matchMessage" style="font-size: 0.8rem; display: block; margin-top: 5px;"></span>
+                    <span id="matchError" class="error-msg">Passwords don't match yet.</span>
+                </div>
+
+                <div class="input-group">
+                    <label for="industry">Primary Content Industry</label>
+                    <select id="industry" name="industry_name" required>
+                        <option value="">-- Select Industry --</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Music">Music</option>
+                        <option value="Fashion">Fashion</option>
+                        <option value="Lifestyle">Lifestyle</option>
+                        <option value="Beauty">Beauty</option>
+                        <option value="Comedy">Comedy</option>
+                    </select>
+                </div>
+
+                <button type="submit" class="btn-signup" id="submitBtn">Create Profile</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentStrength = 0;
+
+        function validateForm() {
+            let isValid = true;
+
+            const email = document.getElementById('email');
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(email.value)) {
+                showError('email', 'emailError');
+                isValid = false;
+            }
+
+            if (currentStrength < 4) {
+                showError('password', 'passStrengthError');
+                isValid = false;
+            }
+
+            // 3. Check Match
+            const p1 = document.getElementById('password').value;
+            const p2 = document.getElementById('confirmPassword').value;
+            if (p1 !== p2) {
+                showError('confirmPassword', 'matchError');
+                isValid = false;
+            }
+
+            return isValid;
+        }
+
+        function showError(inputId, msgId) {
+            document.getElementById(inputId).classList.add('input-error');
+            document.getElementById(msgId).style.display = 'block';
+        }
+
+        function clearError(inputId, msgId) {
+            document.getElementById(inputId).classList.remove('input-error');
+            document.getElementById(msgId).style.display = 'none';
+        }
+
+        function checkPassword() {
+            const password = document.getElementById('password').value;
+            const username = document.getElementById('username').value.toLowerCase().replace('@', '');
+            const email = document.getElementById('email').value.toLowerCase();
+            const container = document.getElementById('strengthContainer');
+            
+            if(password.length > 0) container.style.display = 'block';
+            else container.style.display = 'none';
+
+            const hasUpper = /[A-Z]/.test(password);
+            const hasLower = /[a-z]/.test(password);
+            const hasNumber = /[0-9]/.test(password);
+            const hasSpecial = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
+            const hasSpace = /\s/.test(password);
+            const isLength = password.length >= 8 && password.length <= 12;
+            let hasUserInfo = (username && password.toLowerCase().includes(username)) || (email && password.toLowerCase().includes(email));
+
+            updateRule('rule-length', isLength);
+            updateRule('rule-upper', hasUpper);
+            updateRule('rule-lower', hasLower);
+            updateRule('rule-number', hasNumber);
+            updateRule('rule-special', hasSpecial);
+
+            currentStrength = [hasUpper, hasLower, hasNumber, hasSpecial, isLength, !hasSpace, !hasUserInfo].filter(Boolean).length;
+            const bar = document.getElementById('strengthBar');
+            const text = document.getElementById('strengthText');
+
+            bar.className = 'strength-bar'; 
+            if (currentStrength < 4) {
+                bar.classList.add('weak');
+                text.innerText = "Weak"; text.style.color = "#e74c3c";
+            } else if (currentStrength < 7) {
+                bar.classList.add('medium');
+                text.innerText = "Medium"; text.style.color = "#f1c40f";
+            } else {
+                bar.classList.add('strong');
+                text.innerText = "Strong"; text.style.color = "#2ecc71";
+            }
+            checkMatch(); 
+        }
+
+        function updateRule(id, isValid) {
+            const el = document.getElementById(id);
+            if (isValid) { el.classList.add('valid'); el.classList.remove('invalid'); } 
+            else { el.classList.add('invalid'); el.classList.remove('valid'); }
+        }
+
+        function checkMatch() {
+            const p1 = document.getElementById('password').value;
+            const p2 = document.getElementById('confirmPassword').value;
+            const msg = document.getElementById('matchMessage');
+            
+            if (p2.length === 0) { msg.innerText = ""; return; }
+
+            if (p1 === p2) {
+                msg.innerText = "Perfect match ✅"; msg.style.color = "#2ecc71";
+                clearError('confirmPassword', 'matchError');
+            } else {
+                msg.innerText = "";
+            }
+        }
+    </script>
+</body>
+</html>

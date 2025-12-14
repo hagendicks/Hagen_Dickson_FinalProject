@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <base href="/">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Social Feed - BrandConnect</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="icon" href="{{ url_for('static', filename='icon.png') }}" type="image/png">
+    <style>
+        body {
+            background-color: #18191a;
+            color: #e4e6eb;
+        }
+
+        .feed-container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding-top: 20px;
+        }
+
+        .post-card {
+            background-color: #242526;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+            overflow: hidden;
+        }
+
+        .post-header {
+            display: flex;
+            align-items: center;
+            padding: 15px;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 10px;
+            background-color: #3a3b3c;
+            object-fit: cover;
+        }
+
+        .post-content {
+            padding: 0 15px 15px;
+        }
+
+        .post-image {
+            width: 100%;
+            display: block;
+            margin-bottom: 15px;
+            border-radius: 4px;
+        }
+
+        .badge-campaign {
+            background: #e67e22;
+            color: #fff;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            vertical-align: middle;
+        }
+
+        .create-post {
+            background: #242526;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .create-input {
+            flex-grow: 1;
+            background: #3a3b3c;
+            border: none;
+            padding: 10px;
+            border-radius: 20px;
+            color: white;
+        }
+
+        /* INSIGHTS MODAL STYLES */
+        .modal {
+            display: none; 
+            position: fixed; 
+            z-index: 1000; 
+            left: 0;
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            overflow: auto; 
+            background-color: rgba(0,0,0,0.8); 
+            animation: fadeIn 0.3s;
+        }
+
+        .modal-content {
+            background-color: #242526;
+            margin: 15% auto; 
+            padding: 20px;
+            border: 1px solid #3e4042;
+            width: 300px; 
+            border-radius: 10px;
+            text-align: center;
+            color: #e4e6eb;
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .stat-box {
+            background-color: #3a3b3c;
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .stat-number {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #2ecc71;
+            display: block;
+        }
+
+        .stat-label {
+            font-size: 0.8rem;
+            color: #b0b3b8;
+        }
+
+        .close-btn {
+            color: #aaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        .close-btn:hover { color: white; }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="logo">
+            <h1>BrandConnect</h1>
+        </div>
+        <button class="menu-toggle" id="menuToggle">&#9776;</button>
+        <nav>
+            <ul>
+                {% if session['role'] == 'influencer' %}
+                <li><a href="{{ url_for('influencer_dashboard') }}">Dashboard</a></li>
+                {% else %}
+                <li><a href="{{ url_for('brand_dashboard') }}">Dashboard</a></li>
+                {% endif %}
+                <li><a href="{{ url_for('feed') }}" style="color: #e67e22;">Feed</a></li>
+                <li><a href="{{ url_for('messages_inbox') }}">Messages</a></li>
+            </ul>
+        </nav>
+        <a href="{{ url_for('logout') }}" class="btn-login">Logout</a>
+    </header>
+
+    <div class="feed-container">
+        <div class="create-post">
+            <div class="avatar" style="background-image: url('{{ session.get('profile_pic', '') }}'); background-size: cover;"></div>
+            <form action="{{ url_for('create_post') }}" method="POST" enctype="multipart/form-data" style="width: 100%; display: flex; gap: 10px;">
+                <input type="text" name="content" class="create-input" placeholder="What's on your mind?" required>
+                <input type="file" name="image" id="file" style="display: none;">
+                <label for="file" style="cursor: pointer; padding: 10px; background: #3a3b3c; border-radius: 50%;">📷</label>
+                <button type="submit" class="btn-login" style="padding: 5px 15px;">Post</button>
+            </form>
+        </div>
+
+        {% for item in feed_items %}
+        <div class="post-card">
+            <div class="post-header">
+                <a href="{{ url_for('public_profile', role=item.AuthorType, id=item.AuthorID) }}">
+                    {% if item.AuthorPic %}
+                    <img src="{{ item.AuthorPic }}" class="avatar">
+                    {% else %}
+                    <div class="avatar"></div>
+                    {% endif %}
+                </a>
+                <div>
+                    <h4 style="margin: 0;">
+                        <a href="{{ url_for('public_profile', role=item.AuthorType, id=item.AuthorID) }}" style="color: white;">{{ item.AuthorName }}</a>
+                        {% if item.PostType == 'campaign' %}
+                        <span class="badge-campaign">Sponsored</span>
+                        {% endif %}
+                    </h4>
+                    <span style="font-size: 0.8rem; color: #b0b3b8;">{{ item.Date }}</span>
+                </div>
+            </div>
+
+            <div class="post-content">
+                {% if item.PostType == 'campaign' %}
+                    <h3 style="color: #e67e22;">{{ item.Title }}</h3>
+                    <p>Looking for: {{ item.Industryname }} influencers.</p>
+                    <p style="color: #2ecc71; font-weight: bold;">Budget: GHS {{ item.PayPackage }}</p>
+                    
+                    {% if session['role'] == 'influencer' %}
+                    <form action="{{ url_for('apply_campaign', campaign_id=item.ID) }}" method="POST" style="margin-top: 10px;">
+                        <button class="btn-login">Apply Now</button>
+                    </form>
+                    {% else %}
+                    <div style="margin-top: 10px; border-top: 1px solid #3e4042; padding-top: 10px;">
+                        <button onclick="showInsights('{{ item.Title }}')" class="btn-login" style="background-color: #3a3b3c; width: 100%;">📊 View Insights</button>
+                    </div>
+                    {% endif %}
+
+                {% else %}
+                    <p>{{ item.Title }}</p> 
+                    
+                    {% if item.PayPackage %}
+                    <img src="{{ item.PayPackage }}" class="post-image">
+                    {% endif %}
+
+                    <div style="border-top: 1px solid #3e4042; padding-top: 10px; margin-top: 10px;">
+                        <a href="{{ url_for('chat', partner_type=item.AuthorType, partner_id=item.AuthorID) }}" style="color: #b0b3b8; font-size: 0.9rem;">💬 Message Author</a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        {% else %}
+        <p style="text-align: center;">No posts yet. Be the first!</p>
+        {% endfor %}
+    </div>
+
+    <div id="insightsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeInsights()">&times;</span>
+            <h3>Post Insights</h3>
+            <p id="insightTitle" style="color: #e67e22; font-size: 0.9rem; margin-bottom: 10px;"></p>
+            
+            <div class="stat-grid">
+                <div class="stat-box">
+                    <span class="stat-number" id="valViews">0</span>
+                    <span class="stat-label">Reach</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number" id="valClicks">0</span>
+                    <span class="stat-label">Clicks</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number" id="valLikes">0</span>
+                    <span class="stat-label">Likes</span>
+                </div>
+                <div class="stat-box">
+                    <span class="stat-number" id="valApps">0</span>
+                    <span class="stat-label">Applications</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/script.js"></script>
+    <script>
+        function showInsights(title) {
+            const views = Math.floor(Math.random() * 5000) + 500;
+            const clicks = Math.floor(views * 0.15);
+            const likes = Math.floor(views * 0.08);
+            const apps = Math.floor(views * 0.02);
+
+            document.getElementById('insightTitle').innerText = title;
+            document.getElementById('valViews').innerText = views.toLocaleString();
+            document.getElementById('valClicks').innerText = clicks.toLocaleString();
+            document.getElementById('valLikes').innerText = likes.toLocaleString();
+            document.getElementById('valApps').innerText = apps.toLocaleString();
+
+            document.getElementById('insightsModal').style.display = "block";
+        }
+
+        function closeInsights() {
+            document.getElementById('insightsModal').style.display = "none";
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('insightsModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base href="/">
+    <meta charset="UTF-8">
+    <title>Influencer Dashboard - BrandConnect</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="icon" href="{{ url_for('static', filename='icon.png') }}" type="image/png">
+</head>
+<body>
+    <header>
+        <div class="logo"><h1>BrandConnect</h1></div>
+        <button class="menu-toggle" id="menuToggle">&#9776;</button>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('influencer_dashboard') }}" style="color: #e67e22;">Dashboard</a></li>
+                <li><a href="{{ url_for('profile') }}">Profile</a></li>
+                <li><a href="{{ url_for('feed') }}">Feed</a></li>
+                <li><a href="{{ url_for('search') }}">Search</a></li> <li><a href="{{ url_for('messages_inbox') }}">Messages</a></li> </ul>
+        </nav>
+        <a href="{{ url_for('logout') }}" class="btn-login">Logout</a>
+    </header>
+
+    <div class="dashboard-content">
+        <h2 id="welcome-msg">👋 Welcome back, {{ name }}!</h2>
+        <p class="subtitle">Your overview of active campaigns and profile performance.</p>
+
+        <div class="cards-container stats-container">
+            <div class="card">
+                <h3>Active Campaigns</h3>
+                <p style="font-size: 2.5rem; color: #f1c40f; margin-top: 10px;">{{ active_count }}</p>
+                <p>Campaigns currently in progress.</p>
+            </div>
+            <div class="card">
+                <h3>Pending Applications</h3>
+                <p style="font-size: 2.5rem; color: #2ecc71; margin-top: 10px;">{{ applications|selectattr("Status", "equalto", "Pending")|list|length }}</p>
+                <p>Awaiting brand review.</p>
+            </div>
+        </div>
+
+        <h3>Recent Application Status</h3>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Brand</th>
+                    <th>Campaign Type</th>
+                    <th>Date Applied</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in applications %}
+                <tr>
+                    <td>{{ app.Brandname }}</td>
+                    <td>{{ app.CampaignType }}</td>
+                    <td>{{ app.DateApplied }}</td>
+                    <td class="status-{{ app.Status|lower }}">{{ app.Status }}</td>
+                </tr>
+                {% else %}
+                <tr><td colspan="4">No recent applications found.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <script src="/script.js"></script>
+</body>
+</html>

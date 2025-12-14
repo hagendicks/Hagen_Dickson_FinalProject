@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <base href="/">
+    <meta charset="UTF-8">
+    <title>Messages - BrandConnect</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="icon" href="{{ url_for('static', filename='icon.png') }}" type="image/png">
+    <style>
+        .msg-container { display: flex; height: 80vh; max-width: 1000px; margin: 20px auto; background: #242526; border-radius: 10px; overflow: hidden; }
+        .msg-sidebar { width: 30%; border-right: 1px solid #3e4042; background: #2c3e50; overflow-y: auto; }
+        .msg-content { width: 70%; display: flex; flex-direction: column; background: #18191a; }
+        .msg-list-item { padding: 15px; border-bottom: 1px solid #3e4042; color: #b0b3b8; cursor: pointer; transition: 0.2s; }
+        .msg-list-item:hover { background: #34495e; color: white; }
+        .chat-area { flex-grow: 1; padding: 20px; overflow-y: auto; color: white; display: flex; flex-direction: column; gap: 10px;}
+        .message-bubble { padding: 10px 15px; border-radius: 20px; max-width: 70%; word-wrap: break-word; }
+        .sent { background: #e67e22; align-self: flex-end; color: white; }
+        .received { background: #3a3b3c; align-self: flex-start; color: #e4e6eb; }
+        .chat-input { padding: 15px; border-top: 1px solid #3e4042; display: flex; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo"><h1>BrandConnect</h1></div>
+        <a href="{{ url_for('feed') }}" class="btn-login" style="background: #7f8c8d;">Back to Feed</a>
+    </header>
+
+    <div class="msg-container">
+        <div class="msg-sidebar">
+            <h3 style="padding: 15px; color: white; border-bottom: 1px solid #3e4042; position: sticky; top: 0; background: #2c3e50;">Inbox</h3>
+            
+            {% if inbox %}
+                {% for chat in inbox %}
+                <div class="msg-list-item" onclick="window.location.href='{{ url_for('chat', partner_type=chat.PartnerType, partner_id=chat.PartnerID) }}'">
+                    <strong>{{ chat.PartnerName }}</strong>
+                    <div style="font-size: 0.8rem; margin-top: 5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                        {{ chat.LastMessage }}
+                    </div>
+                    <div style="font-size: 0.7rem; color: #7f8c8d; margin-top: 5px;">{{ chat.SentAt }}</div>
+                </div>
+                {% endfor %}
+            {% elif in_chat_mode %}
+                <div style="padding: 15px;">
+                    <a href="{{ url_for('messages_inbox') }}" style="color: #e67e22; font-size: 0.9rem;">&larr; View All Chats</a>
+                </div>
+            {% else %}
+                <p style="padding: 15px; color: #bdc3c7;">No active chats found.</p>
+            {% endif %}
+        </div>
+
+        <div class="msg-content">
+            {% if in_chat_mode %}
+                <div style="padding: 15px; border-bottom: 1px solid #3e4042; color: white; background-color: #242526;">
+                    <strong>Chat with {{ partner_name }}</strong>
+                </div>
+
+                <div class="chat-area" id="chatArea">
+                    {% for msg in active_chat %}
+                        <div class="message-bubble {% if msg.SenderID == session['user_id'] and msg.SenderType == session['role'].capitalize() %}sent{% else %}received{% endif %}">
+                            {{ msg.MessageBody }}
+                        </div>
+                    {% else %}
+                        <div style="text-align: center; color: #7f8c8d; margin-top: 20px;">
+                            <p>No messages yet. Say hello!</p>
+                        </div>
+                    {% endfor %}
+                </div>
+
+                <form class="chat-input" method="POST">
+                    <input type="text" name="message" style="flex-grow: 1; padding: 10px; border-radius: 20px; border: none; background: #3a3b3c; color: white;" placeholder="Type a message..." autocomplete="off" required>
+                    <button type="submit" class="btn-login" style="margin-left: 10px; border-radius: 50%; width: 40px; height: 40px; padding: 0; display: flex; align-items: center; justify-content: center;">&rarr;</button>
+                </form>
+
+            {% else %}
+                <div style="display: flex; align-items: center; justify-content: center; height: 100%; color: #bdc3c7; flex-direction: column;">
+                    <h3>Your Messages</h3>
+                    <p>Select a conversation from the left to start chatting.</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        window.onload = function() {
+            var chatArea = document.getElementById("chatArea");
+            if(chatArea) {
+                chatArea.scrollTop = chatArea.scrollHeight;
+            }
+        }
+    </script>
+</body>
+</html>

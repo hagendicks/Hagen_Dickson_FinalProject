@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <base href="/">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Campaigns - BrandConnect</title>
+    <link rel="stylesheet" href="/style.css">
+    <link rel="icon" href="{{ url_for('static', filename='icon.png') }}" type="image/png">
+    <style>
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.6);
+        }
+
+        .modal-content {
+            background-color: #34495e;
+            margin: 15% auto;
+            padding: 30px;
+            border: 1px solid #2ecc71;
+            width: 50%;
+            border-radius: 10px;
+            position: relative;
+            color: white;
+        }
+
+        .close-btn {
+            color: #bdc3c7;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Action Buttons */
+        .btn-action {
+            padding: 5px 10px;
+            font-size: 0.8rem;
+            margin-right: 5px;
+            border-radius: 4px;
+            text-decoration: none;
+            display: inline-block;
+            cursor: pointer;
+            border: none;
+        }
+
+        .btn-view { background-color: #3498db; color: white; }
+        .btn-complete { background-color: #27ae60; color: white; }
+        .btn-archive { background-color: #e74c3c; color: white; }
+        .btn-active { background-color: #f39c12; color: white; }
+
+        .btn-action:hover { opacity: 0.8; }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="logo">
+            <h1>BrandConnect</h1>
+        </div>
+        <button class="menu-toggle" id="menuToggle">&#9776;</button>
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('brand_dashboard') }}">Dashboard</a></li>
+                <li><a href="{{ url_for('brand_profile_route') }}">Profile</a></li>
+                <li><a href="{{ url_for('create_campaign') }}">Post Campaign</a></li>
+                <li><a href="{{ url_for('feed') }}">Feed</a></li>
+                <li><a href="{{ url_for('manage_campaigns_route') }}" style="color: #e67e22;">Manage</a></li>
+            </ul>
+        </nav>
+        <a href="{{ url_for('logout') }}" class="btn-login">Logout</a>
+    </header>
+
+    <div class="dashboard-content">
+        <h2>Manage Campaigns</h2>
+        <p class="subtitle">Track progress and manage your active marketing.</p>
+
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div style="background-color: {% if category == 'error' %}#e74c3c{% else %}#2ecc71{% endif %}; color: white; padding: 10px; margin-bottom: 20px; border-radius: 5px;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+
+        <div class="card" style="margin-top: 30px;">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Campaign Name</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="campaignTableBody">
+                    {% for campaign in campaigns %}
+                    <tr>
+                        <td>{{ campaign.CampaignName }}</td>
+                        <td>{{ campaign.StartDate }}</td>
+                        <td>{{ campaign.EndDate }}</td>
+                        
+                        <td style="font-weight: bold; color: {% if campaign.CampaignStatus == 'Active' %}#2ecc71{% else %}#bdc3c7{% endif %};">
+                            {{ campaign.CampaignStatus }}
+                        </td>
+
+                        <td>
+                            <button onclick="viewCampaign('{{ campaign.CampaignName }}', '{{ campaign.CampaignStatus }}', '{{ campaign.StartDate }} - {{ campaign.EndDate }}')" class="btn-action btn-view">
+                                View
+                            </button>
+
+                            {% if campaign.CampaignStatus == 'Active' %}
+                                <a href="{{ url_for('update_campaign_main_status', campaign_id=campaign.CampaignID, action='Completed') }}" class="btn-action btn-archive" onclick="return confirm('Mark this campaign as Completed?');">
+                                    End Campaign
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('update_campaign_main_status', campaign_id=campaign.CampaignID, action='Active') }}" class="btn-action btn-active">
+                                    Re-Activate
+                                </a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% else %}
+                    <tr>
+                        <td colspan="5" style="text-align: center;">No campaigns found. <a href="{{ url_for('create_campaign') }}">Create one?</a></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="campaignModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h2 id="modalTitle" style="border-bottom: 1px solid #2ecc71; padding-bottom: 10px; color: #2ecc71;">Campaign Details</h2>
+            
+            <div style="margin-top: 20px;">
+                <p><strong>Status:</strong> <span id="modalStatus"></span></p>
+                <p><strong>Duration:</strong> <span id="modalDate"></span></p>
+                <p style="margin-top: 15px; color: #bdc3c7;">
+                    This campaign is currently managed by your brand. <br>
+                    Ending the campaign will move it to the archives.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2025 BrandConnect Marketplace</p>
+    </footer>
+
+    <script src="/script.js"></script>
+    <script>
+        // Simple Modal Logic
+        function viewCampaign(title, status, date) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalStatus').innerText = status;
+            document.getElementById('modalDate').innerText = date;
+            document.getElementById('campaignModal').style.display = "block";
+        }
+
+        function closeModal() {
+            document.getElementById('campaignModal').style.display = "none";
+        }
+
+        // Close modal if user clicks outside of it
+        window.onclick = function(event) {
+            const modal = document.getElementById('campaignModal');
+            if (event.target == modal) {
+                modal.style.display = "none";
+            }
+        }
+    </script>
+</body>
+</html>
