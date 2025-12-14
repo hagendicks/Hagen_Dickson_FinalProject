@@ -5,9 +5,9 @@ def get_db_connection():
     connection = None
     try:
         connection = mysql.connector.connect(
-            host='localhost',
-            user='root',
-            password='PaDaK123@$$',
+            host='mysql-24407748-ashesi-abbd.I.aivencloud.com',
+            user='avnadmin',
+            password='AVNS_nm8o8EuG2Wxqnvkzwk4',
             database='NewFinalsdb'
         )
         
@@ -45,4 +45,5 @@ if __name__ == "__main__":
         finally:
             if 'cursor' in locals():
                 cursor.close()
+
             close_connection(conn)
