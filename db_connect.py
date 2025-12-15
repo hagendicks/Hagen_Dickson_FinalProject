@@ -7,7 +7,7 @@ def get_db_connection():
             host=os.environ.get('MYSQLHOST'),
             user=os.environ.get('MYSQLUSER'),
             password=os.environ.get('MYSQLPASSWORD'),
-            database=os.environ.get('MYSQLDATABASE'),
+            database=os.environ.get('MYSQL_DATABASE'),
             port=os.environ.get('MYSQLPORT')
         )
     else:
@@ -46,3 +46,4 @@ if __name__ == "__main__":
             if 'cursor' in locals():
                 cursor.close()
             close_connection(conn)
+
