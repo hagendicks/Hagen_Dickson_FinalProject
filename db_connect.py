@@ -1,23 +1,23 @@
 import mysql.connector
-from mysql.connector import Error
+import os
 
 def get_db_connection():
-    connection = None
-    try:
-        connection = mysql.connector.connect(
-            host='mysql-24407748-ashesi-abbd.I.aivencloud.com',
-            user='avnadmin',
-            password='AVNS_nm8o8EuG2Wxqnvkzwk4',
+    if os.environ.get('RAILWAY_ENVIRONMENT'):
+        return mysql.connector.connect(
+            host=os.environ.get('MYSQLHOST'),
+            user=os.environ.get('MYSQLUSER'),
+            password=os.environ.get('MYSQLPASSWORD'),
+            database=os.environ.get('MYSQLDATABASE'),
+            port=os.environ.get('MYSQLPORT')
+        )
+    else:
+
+        return mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password='PaDaK123@$$',
             database='NewFinalsdb'
         )
-        
-        if connection.is_connected():
-            print("Successfully connected to the database")
-            return connection
-
-    except Error as e:
-        print(f"Error while connecting to MySQL: {e}")
-        return None
 
 def close_connection(connection):
     if connection and connection.is_connected():
@@ -45,5 +45,4 @@ if __name__ == "__main__":
         finally:
             if 'cursor' in locals():
                 cursor.close()
-
             close_connection(conn)
