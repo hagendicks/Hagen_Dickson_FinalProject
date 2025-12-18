@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <base href="/">
     <meta charset="UTF-8">
@@ -7,39 +8,42 @@
     <link rel="stylesheet" href="/style.css">
     <link rel="icon" href="{{ url_for('static', filename='icon.png') }}" type="image/png">
     <style>
-        /* Container Styling */
-        .search-box-container { text-align: center; margin-bottom: 40px; position: relative; }
-        
-        /* Input Styling */
-        .search-main-input { 
-            padding: 15px 20px; 
-            width: 100%; 
-            max-width: 600px; 
-            border-radius: 30px; 
-            border: 2px solid #3e4042; 
-            background: #242526; 
-            color: white; 
-            font-size: 1.1rem; 
-            outline: none; 
+        .search-box-container {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+
+        .search-main-input {
+            padding: 15px 20px;
+            width: 100%;
+            max-width: 600px;
+            border-radius: 30px;
+            border: 2px solid #3e4042;
+            background: #242526;
+            color: white;
+            font-size: 1.1rem;
+            outline: none;
             transition: all 0.3s ease;
         }
 
-        .search-main-input:focus { 
-            border-color: #e67e22; 
-            box-shadow: 0 0 10px rgba(230, 126, 34, 0.2); 
+        .search-main-input:focus {
+            border-color: #e67e22;
+            box-shadow: 0 0 10px rgba(230, 126, 34, 0.2);
             background: #2c3e50;
         }
 
-        /* Result Card Animation & Styling */
-        .result-card { 
-            background: #242526; 
-            padding: 20px; 
-            border-radius: 12px; 
-            display: flex; 
-            align-items: center; 
-            justify-content: space-between; 
-            margin-bottom: 15px; 
-            opacity: 0; 
+
+        .result-card {
+            background: #242526;
+            padding: 20px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 15px;
+            opacity: 0;
             transform: translateY(10px);
             animation: slideUp 0.3s ease-out forwards;
             border: 1px solid #3e4042;
@@ -50,44 +54,54 @@
             background: #2c3e50;
         }
 
-        .res-avatar { 
-            width: 60px; 
-            height: 60px; 
-            border-radius: 50%; 
-            object-fit: cover; 
-            margin-right: 20px; 
-            background: #3a3b3c; 
+        .res-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 20px;
+            background: #3a3b3c;
             border: 2px solid #3e4042;
         }
 
-        .res-info { flex-grow: 1; }
-
-        @keyframes slideUp {
-            to { opacity: 1; transform: translateY(0); }
+        .res-info {
+            flex-grow: 1;
         }
 
-        /* Loading Spinner Animation */
+        @keyframes slideUp {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+
         .spinner {
             display: inline-block;
             width: 20px;
             height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
+            border: 3px solid rgba(255, 255, 255, 0.3);
             border-radius: 50%;
             border-top-color: #e67e22;
             animation: spin 1s ease-in-out infinite;
             margin-left: 10px;
             vertical-align: middle;
-            display: none; /* Hidden by default */
+            display: none;
         }
 
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            to {
+                transform: rotate(360deg);
+            }
         }
     </style>
 </head>
+
 <body>
     <header>
-        <div class="logo"><h1>BrandConnect</h1></div>
+        <div class="logo">
+            <h1>BrandConnect</h1>
+        </div>
         <button class="menu-toggle" id="menuToggle">&#9776;</button>
         <nav>
             <ul>
@@ -107,12 +121,13 @@
     <div class="dashboard-content">
         <div class="search-box-container">
             <h2 style="margin-bottom: 20px;">Find Brands & Creators</h2>
-            
+
             <div style="position: relative; max-width: 600px; margin: 0 auto;">
-                <input type="text" id="ajaxSearchInput" class="search-main-input" placeholder="Type name, handle, or industry..." autocomplete="off">
+                <input type="text" id="ajaxSearchInput" class="search-main-input"
+                    placeholder="Type name, handle, or industry..." autocomplete="off">
                 <div id="searchSpinner" class="spinner" style="position: absolute; right: 20px; top: 18px;"></div>
             </div>
-            
+
             <p style="margin-top: 10px; color: #7f8c8d; font-size: 0.9rem;">
                 Try searching for "MTN", "Music", or "@handle"
             </p>
@@ -130,12 +145,12 @@
         const searchInput = document.getElementById('ajaxSearchInput');
         const resultsContainer = document.getElementById('resultsContainer');
         const spinner = document.getElementById('searchSpinner');
-        let debounceTimer; // Variable to control the delay
+        let debounceTimer;
 
         searchInput.addEventListener('input', (e) => {
             const query = e.target.value.trim();
-            
-            // 1. STOP previous timer (This fixes the glitch!)
+
+
             clearTimeout(debounceTimer);
 
             if (query.length < 2) {
@@ -144,21 +159,21 @@
                 return;
             }
 
-            // Show loading spinner
+
             spinner.style.display = 'block';
 
-            // 2. START new timer (Wait 300ms before sending request)
+
             debounceTimer = setTimeout(() => {
                 performSearch(query);
-            }, 300); 
+            }, 300);
         });
 
         function performSearch(query) {
             fetch(`/api/search?q=${query}`)
                 .then(response => response.json())
                 .then(data => {
-                    spinner.style.display = 'none'; // Hide spinner
-                    resultsContainer.innerHTML = ''; // Clear old results
+                    spinner.style.display = 'none';
+                    resultsContainer.innerHTML = '';
 
                     if (data.length === 0) {
                         resultsContainer.innerHTML = `
@@ -170,16 +185,16 @@
                         return;
                     }
 
-                    // Loop through results and create cards
+
                     data.forEach((item, index) => {
                         const profileUrl = `/user/${item.Role}/${item.ID}`;
                         const chatUrl = `/messages/${item.Role}/${item.ID}`;
-                        
-                        // Use default placeholder if Pic is null
+
+
                         const imgSrc = item.Pic ? item.Pic : 'https://via.placeholder.com/60?text=' + item.Name.charAt(0);
 
-                        // Stagger animation delay
-                        const delay = index * 0.1; 
+
+                        const delay = index * 0.1;
 
                         const cardHTML = `
                             <div class="result-card" style="animation-delay: ${delay}s">
@@ -212,4 +227,5 @@
         }
     </script>
 </body>
+
 </html>
