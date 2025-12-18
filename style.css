@@ -1,63 +1,125 @@
-/* Import Fonts */
-@import url('https://fonts.googleapis.com/css2?family=Merriweather:wght@300;400;700&family=Roboto:wght@300;400;700&display=swap');
-
-/* ======================================================== */
-/* 1. ANIMATIONS KEYFRAMES                                  */
-/* ======================================================== */
-
-/* NEW: Background Animation */
 @keyframes gradientBG {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
+    0% {
+        background-position: 0% 50%;
+    }
+
+    50% {
+        background-position: 100% 50%;
+    }
+
+    100% {
+        background-position: 0% 50%;
+    }
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes slideInLeft {
-    from { opacity: 0; transform: translateX(-50px); }
-    to { opacity: 1; transform: translateX(0); }
+    from {
+        opacity: 0;
+        transform: translateX(-50px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
 }
 
 @keyframes float {
-    0% { transform: translateY(0px); }
-    50% { transform: translateY(-10px); }
-    100% { transform: translateY(0px); }
+    0% {
+        transform: translateY(0px);
+    }
+
+    50% {
+        transform: translateY(-10px);
+    }
+
+    100% {
+        transform: translateY(0px);
+    }
 }
 
 @keyframes pulseGreen {
-    0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7); }
-    70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
-    100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+    0% {
+        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(46, 204, 113, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(46, 204, 113, 0);
+    }
 }
 
 @keyframes shake {
-    0%, 100% { transform: translateX(0); }
-    10%, 30%, 50%, 70%, 90% { transform: translateX(-4px); }
-    20%, 40%, 60%, 80% { transform: translateX(4px); }
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    10%,
+    30%,
+    50%,
+    70%,
+    90% {
+        transform: translateX(-4px);
+    }
+
+    20%,
+    40%,
+    60%,
+    80% {
+        transform: translateX(4px);
+    }
 }
 
 @keyframes shimmer {
-    0% { background-position: -200% 0; }
-    100% { background-position: 200% 0; }
+    0% {
+        background-position: -200% 0;
+    }
+
+    100% {
+        background-position: 200% 0;
+    }
 }
 
 @keyframes slideUpFade {
-    from { opacity: 0; transform: translateY(20px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 @keyframes scroll {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
+    0% {
+        transform: translateX(0);
+    }
+
+    100% {
+        transform: translateX(-50%);
+    }
 }
 
-/* ======================================================== */
-/* 2. Global Reset & Typography                             */
-/* ======================================================== */
+
 
 * {
     margin: 0;
@@ -69,22 +131,32 @@ body {
     font-family: 'Merriweather', serif;
     line-height: 1.75;
     color: #ecf0f1;
-    
-    /* UPDATED: Dynamic Gradient Background */
+
+
     background: linear-gradient(-45deg, #18191a, #2c3e50, #18191a, #0f172a);
     background-size: 400% 400%;
-    
-    /* Combined Animations: Fade In + Gradient Movement */
+
+
     animation: fadeIn 0.8s ease-out, gradientBG 15s ease infinite;
     min-height: 100vh;
 }
 
-h1, h2, h3, header, nav, button, label, input, select {
+h1,
+h2,
+h3,
+header,
+nav,
+button,
+label,
+input,
+select {
     font-family: 'Roboto', sans-serif;
     margin-bottom: 0.5rem;
 }
 
-h1, h2, h3 {
+h1,
+h2,
+h3 {
     color: #2ecc71;
 }
 
@@ -124,9 +196,7 @@ button:hover {
     transform: scale(1.05);
 }
 
-/* ======================================================== */
-/* 3. Header and Navigation                                 */
-/* ======================================================== */
+
 
 header {
     background-color: #242526;
@@ -193,6 +263,7 @@ nav a::after {
     .menu-toggle {
         display: block;
     }
+
     nav {
         display: none;
         position: absolute;
@@ -205,25 +276,27 @@ nav a::after {
         padding: 10px 0;
         animation: fadeIn 0.3s ease-in;
     }
+
     nav.active {
         display: block;
     }
+
     nav ul {
         flex-direction: column;
     }
+
     nav ul li {
         margin: 0;
         text-align: center;
         border-bottom: 1px solid #4a6781;
     }
+
     nav ul li a {
         padding: 15px;
     }
 }
 
-/* ======================================================== */
-/* 4. Hero Section                                          */
-/* ======================================================== */
+
 
 .hero {
     background: linear-gradient(rgba(44, 62, 80, 0.9), rgba(44, 62, 80, 0.95)), url('placeholder.jpg');
@@ -266,9 +339,7 @@ nav a::after {
     animation-play-state: paused;
 }
 
-/* ======================================================== */
-/* 5. Infinite Carousel                                     */
-/* ======================================================== */
+
 
 .carousel-wrapper {
     overflow: hidden;
@@ -305,16 +376,16 @@ nav a::after {
     background-color: #3e5871;
 }
 
-/* ======================================================== */
-/* 6. Standard Cards                                        */
-/* ======================================================== */
 
-.features, .user-roles {
+
+.features,
+.user-roles {
     padding: 70px 40px;
     text-align: center;
 }
 
-.cards-container, .role-container {
+.cards-container,
+.role-container {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -350,17 +421,14 @@ nav a::after {
     display: none;
 }
 
-/* ======================================================== */
-/* 7. Forms                                                 */
-/* ======================================================== */
+
 
 .login-container {
     height: 100vh;
     display: flex;
     justify-content: center;
     align-items: center;
-    /* Use transparent bg to show body gradient */
-    background-color: transparent; 
+
     animation: fadeIn 0.5s ease-out;
 }
 
@@ -421,9 +489,7 @@ nav a::after {
     transform: translateY(-2px);
 }
 
-/* ======================================================== */
-/* 8. Dashboard & Tables                                    */
-/* ======================================================== */
+
 
 .dashboard-content {
     padding: 50px 40px;
@@ -442,7 +508,8 @@ nav a::after {
     overflow: hidden;
 }
 
-.data-table th, .data-table td {
+.data-table th,
+.data-table td {
     border-bottom: 1px solid #4a6781;
     padding: 15px;
     color: #ecf0f1;
@@ -461,9 +528,20 @@ nav a::after {
     background-color: #3e5871;
 }
 
-.status-pending { color: #f1c40f; font-weight: bold; }
-.status-approved { color: #2ecc71; font-weight: bold; }
-.status-updated { animation: pulseGreen 1s ease-out; border-radius: 4px; }
+.status-pending {
+    color: #f1c40f;
+    font-weight: bold;
+}
+
+.status-approved {
+    color: #2ecc71;
+    font-weight: bold;
+}
+
+.status-updated {
+    animation: pulseGreen 1s ease-out;
+    border-radius: 4px;
+}
 
 footer {
     background-color: #34495e;
@@ -473,9 +551,7 @@ footer {
     margin-top: 50px;
 }
 
-/* ======================================================== */
-/* PASSWORD STRENGTH & VALIDATION                           */
-/* ======================================================== */
+
 
 .password-strength-container {
     margin-top: 10px;
@@ -527,13 +603,33 @@ footer {
     color: #555;
 }
 
-.validation-item.valid { color: #2ecc71; }
-.validation-item.valid::before { content: '✓'; color: #2ecc71; }
-.validation-item.invalid { color: #e74c3c; }
+.validation-item.valid {
+    color: #2ecc71;
+}
 
-.weak { background-color: #e74c3c; width: 33%; }
-.medium { background-color: #f1c40f; width: 66%; }
-.strong { background-color: #2ecc71; width: 100%; }
+.validation-item.valid::before {
+    content: '✓';
+    color: #2ecc71;
+}
+
+.validation-item.invalid {
+    color: #e74c3c;
+}
+
+.weak {
+    background-color: #e74c3c;
+    width: 33%;
+}
+
+.medium {
+    background-color: #f1c40f;
+    width: 66%;
+}
+
+.strong {
+    background-color: #2ecc71;
+    width: 100%;
+}
 
 .input-error {
     border-color: #e74c3c !important;
@@ -562,12 +658,23 @@ footer {
     opacity: 0;
 }
 
-.result-card:nth-child(1) { animation-delay: 0.1s; }
-.result-card:nth-child(2) { animation-delay: 0.2s; }
-.result-card:nth-child(3) { animation-delay: 0.3s; }
-.result-card:nth-child(4) { animation-delay: 0.4s; }
+.result-card:nth-child(1) {
+    animation-delay: 0.1s;
+}
 
-/* POST CARD STYLES */
+.result-card:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.result-card:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.result-card:nth-child(4) {
+    animation-delay: 0.4s;
+}
+
+
 .post-card {
     background-color: #242526;
     border-radius: 8px;
@@ -593,7 +700,9 @@ footer {
     object-fit: cover;
 }
 
-.post-content { padding: 0 15px 15px; }
+.post-content {
+    padding: 0 15px 15px;
+}
 
 .post-image {
     width: 100%;
@@ -604,7 +713,7 @@ footer {
     object-fit: cover;
 }
 
-/* CREATE POST FORM STYLES */
+
 .create-post-container {
     background: #242526;
     padding: 15px;
