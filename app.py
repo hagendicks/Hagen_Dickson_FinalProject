@@ -15,8 +15,6 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app = Flask(__name__, template_folder=basedir, static_folder=basedir)
 app.secret_key = 'super_secret_key'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
 
 
@@ -265,12 +263,10 @@ def update_profile():
             image_path = url_for('static', filename='uploads/' + filename)
 
         if role == 'influencer':
-
             name = request.form.get('name')
             handle = request.form.get('handle')
             industry = request.form.get('industry')
             
-
             if image_path:
                 cursor.execute("UPDATE INFLUENCER SET ProfilePic = %s WHERE InfluencerID = %s", (image_path, user_id))
                 session['profile_pic'] = image_path
@@ -281,15 +277,12 @@ def update_profile():
                     SET InfluencerName = %s, Handle = %s, Industry = %s 
                     WHERE InfluencerID = %s
                 """, (name, handle, industry, user_id))
-                
                 session['user_name'] = name 
 
         elif role == 'brand':
-
             name = request.form.get('name')
             email = request.form.get('email')
             budget = request.form.get('budget')
-
 
             if image_path:
                 cursor.execute("UPDATE BRAND SET LogoPic = %s WHERE BrandID = %s", (image_path, user_id))
@@ -304,7 +297,6 @@ def update_profile():
                 session['user_name'] = name
 
         conn.commit()
-        
         return jsonify({
             'success': True, 
             'new_image': image_path,
@@ -397,9 +389,24 @@ def brand_dashboard():
         """
         cursor.execute(query, tuple(active_industries))
         suggestions = cursor.fetchall()
+    cursor.execute("SELECT * FROM BRAND WHERE BrandID = %s", (session['user_id'],))
+    brand = cursor.fetchone()
+
+    cursor.execute("""
+        SELECT * FROM POSTS 
+        WHERE AuthorID = %s AND AuthorType = 'Brand' 
+        ORDER BY CreatedAt DESC
+    """, (session['user_id'],))
+    posts = cursor.fetchall()
 
     conn.close()
-    return render_template('brand_dashboard.html', name=session['user_name'], active_count=active_count, applicants=applicants, suggestions=suggestions)
+    return render_template('brand_dashboard.html', 
+                           name=session['user_name'], 
+                           active_count=active_count, 
+                           applicants=applicants, 
+                           suggestions=suggestions,
+                           brand=brand,
+                           posts=posts)
 
 @app.route('/search')
 def search():
@@ -478,7 +485,7 @@ def create_post():
     if session['role'] == 'influencer':
         return redirect(url_for('profile'))
     else:
-        return redirect(url_for('brand_profile_route'))
+        return redirect(url_for('brand_dashboard'))
 
 @app.route('/post/delete/<int:post_id>', methods=['POST'])
 def delete_post(post_id):
@@ -510,7 +517,7 @@ def delete_post(post_id):
     if session.get('role') == 'influencer':
         return redirect(url_for('profile'))
     else:
-        return redirect(url_for('brand_profile_route'))
+        return redirect(url_for('brand_dashboard'))
 
 @app.route('/campaign/create', methods=['GET', 'POST'])
 def create_campaign():
@@ -692,23 +699,7 @@ def profile():
 
 @app.route('/brand_profile.html')
 def brand_profile_route():
-    if 'user_id' not in session: return redirect(url_for('login'))
-    
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    
-    cursor.execute("SELECT * FROM BRAND WHERE BrandID = %s", (session['user_id'],))
-    brand = cursor.fetchone()
-
-    cursor.execute("""
-        SELECT * FROM POSTS 
-        WHERE AuthorID = %s AND AuthorType = 'Brand' 
-        ORDER BY CreatedAt DESC
-    """, (session['user_id'],))
-    my_posts = cursor.fetchall()
-
-    conn.close()
-    return render_template('brand_profile.html', brand=brand, posts=my_posts)
+    return redirect(url_for('brand_dashboard'))
 
 @app.route('/my_applications.html')
 def my_applications_route():
