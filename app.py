@@ -316,7 +316,7 @@ def update_profile():
         return jsonify({'success': False, 'message': str(e)}), 500
     finally:
         conn.close()
-
+        
 @app.route('/dashboard/influencer')
 def influencer_dashboard():
     if 'user_id' not in session or session['role'] != 'influencer': return redirect(url_for('login'))
@@ -335,10 +335,28 @@ def influencer_dashboard():
         WHERE ic.InfluencerID = %s LIMIT 5
     """, (session['user_id'],))
     recent_apps = cursor.fetchall()
+
+    cursor.execute("SELECT Industry FROM INFLUENCER WHERE InfluencerID = %s", (session['user_id'],))
+    user_data = cursor.fetchone()
+    my_industry = user_data['Industry'] if user_data else None
+
+    recommendations = []
+    if my_industry:
+        cursor.execute("""
+            SELECT c.CampaignID, c.CampaignName, b.Brandname, c.EndDate, b.PayPackage
+            FROM CAMPAIGN c
+            JOIN BRAND b ON c.BrandID = b.BrandID
+            JOIN INDUSTRY i ON c.IndustryID = i.IndustryID
+            WHERE i.Industryname = %s 
+              AND c.CampaignStatus = 'Active'
+              AND c.CampaignID NOT IN (SELECT CampaignID FROM INFLUENCER_CAMPAIGN WHERE InfluencerID = %s)
+            LIMIT 4
+        """, (my_industry, session['user_id']))
+        recommendations = cursor.fetchall()
     
     conn.close()
-    return render_template('influencer_dashboard.html', name=session['user_name'], active_count=active_count, applications=recent_apps)
-
+    return render_template('influencer_dashboard.html', name=session['user_name'], active_count=active_count, applications=recent_apps, recommendations=recommendations)
+    
 @app.route('/dashboard/brand')
 def brand_dashboard():
     if 'user_id' not in session or session['role'] != 'brand': return redirect(url_for('login'))
@@ -360,8 +378,28 @@ def brand_dashboard():
     """, (session['user_id'],))
     applicants = cursor.fetchall()
 
+    cursor.execute("""
+        SELECT DISTINCT i.Industryname 
+        FROM CAMPAIGN c 
+        JOIN INDUSTRY i ON c.IndustryID = i.IndustryID 
+        WHERE c.BrandID = %s AND c.CampaignStatus = 'Active'
+    """, (session['user_id'],))
+    active_industries = [row['Industryname'] for row in cursor.fetchall()]
+
+    suggestions = []
+    if active_industries:
+        placeholders = ', '.join(['%s'] * len(active_industries))
+        query = f"""
+            SELECT * FROM INFLUENCER 
+            WHERE Industry IN ({placeholders}) 
+            ORDER BY Followers DESC
+            LIMIT 4
+        """
+        cursor.execute(query, tuple(active_industries))
+        suggestions = cursor.fetchall()
+
     conn.close()
-    return render_template('brand_dashboard.html', name=session['user_name'], active_count=active_count, applicants=applicants)
+    return render_template('brand_dashboard.html', name=session['user_name'], active_count=active_count, applicants=applicants, suggestions=suggestions)
 
 @app.route('/search')
 def search():
