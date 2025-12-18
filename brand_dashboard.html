@@ -179,10 +179,12 @@
                     </td>
                     <td id="actions-{{ app.CAM_ID }}">
                         {% if app.CampaignStatus == 'Pending' %}
-                        <button onclick="updateStatus({{ app.CAM_ID }}, 'Approved')" style="background: none; border: none; cursor: pointer; color: #2ecc71; font-size: 1.2rem;" title="Approve">✅</button>
-                        <button onclick="updateStatus({{ app.CAM_ID }}, 'Rejected')" style="background: none; border: none; cursor: pointer; color: #e74c3c; font-size: 1.2rem; margin-left: 10px;" title="Reject">❌</button>
+                            <button onclick="updateStatus({{ app.CAM_ID }}, 'Approved')" style="background: none; border: none; cursor: pointer; color: #2ecc71; font-size: 1.2rem;" title="Approve">✅</button>
+                            <button onclick="updateStatus({{ app.CAM_ID }}, 'Rejected')" style="background: none; border: none; cursor: pointer; color: #e74c3c; font-size: 1.2rem; margin-left: 10px;" title="Reject">❌</button>
+                        {% elif app.CampaignStatus == 'Approved' %}
+                            <a href="{{ url_for('brand_contract_route') }}" target="_blank" class="btn-login" style="padding: 5px 10px; font-size: 0.8rem; background-color: #2c3e50; border: 1px solid #2ecc71;">📄 Contract</a>
                         {% else %}
-                        <span style="color: #bdc3c7;">Decided</span>
+                            <span style="color: #bdc3c7;">{{ app.CampaignStatus }}</span>
                         {% endif %}
                     </td>
                 </tr>
@@ -234,9 +236,11 @@
 
     </div>
 
+    <footer>
+        <p>&copy; 2025 BrandConnect Marketplace</p>
+    </footer>
     <script src="/script.js"></script>
     <script>
-        
         function updateStatus(appId, action) {
             if(!confirm(`Are you sure you want to mark this as ${action}?`)) return;
             const statusCell = document.getElementById(`status-${appId}`);
@@ -255,7 +259,12 @@
                     statusCell.innerText = data.new_status;
                     statusCell.style.color = (data.new_status === 'Approved') ? "#2ecc71" : "#e74c3c";
                     statusCell.style.fontWeight = "bold";
-                    actionCell.innerHTML = '<span style="color: #bdc3c7;">Just Now</span>';
+
+                    if (data.new_status === 'Approved') {
+                        actionCell.innerHTML = `<a href="{{ url_for('brand_contract_route') }}" target="_blank" class="btn-login" style="padding: 5px 10px; font-size: 0.8rem; background-color: #2c3e50; border: 1px solid #2ecc71;">📄 Contract</a>`;
+                    } else {
+                        actionCell.innerHTML = '<span style="color: #bdc3c7;">Decided</span>';
+                    }
                 } else {
                     alert("Error updating status: " + data.message);
                 }
@@ -275,6 +284,7 @@
             document.getElementById('brand-edit').style.display = 'none';
             document.getElementById('brand-view').style.display = 'block';
         }
+
         function saveBrandProfile(event) {
             event.preventDefault();
             const btn = event.target.querySelector('button[type="submit"]');
