@@ -1,21 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <base href="/">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brand Dashboard & Profile - BrandConnect</title>
+    <title>Brand Dashboard - BrandConnect</title>
     <link rel="stylesheet" href="/style.css">
     <link rel="icon" href="{{ url_for('static', filename='icon.png') }}" type="image/png">
 </head>
-
 <body>
-
     <header>
-        <div class="logo">
-            <h1>BrandConnect</h1>
-        </div>
+        <div class="logo"><h1>BrandConnect</h1></div>
         <button class="menu-toggle" id="menuToggle">&#9776;</button>
         <nav>
             <ul>
@@ -23,7 +17,7 @@
                 <li><a href="{{ url_for('create_campaign') }}">Post Campaign</a></li>
                 <li><a href="{{ url_for('feed') }}">Feed</a></li>
                 <li><a href="{{ url_for('manage_campaigns_route') }}">Manage</a></li>
-                <li><a href="{{ url_for('search') }}">Search</a></li>
+                <li><a href="{{ url_for('search') }}">Search</a></li> 
                 <li><a href="{{ url_for('messages_inbox') }}">Messages</a></li>
             </ul>
         </nav>
@@ -31,7 +25,6 @@
     </header>
 
     <div class="dashboard-content">
-        
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
                 {% for category, message in messages %}
@@ -43,9 +36,9 @@
         {% endwith %}
 
         <h2 id="welcome-msg">Welcome, {{ name }}!</h2>
-        <p class="subtitle">Overview of your marketing performance and profile.</p>
+        <p class="subtitle">Overview of your marketing performance.</p>
 
-        <div class="cards-container stats-container" style="margin-bottom: 40px;">
+        <div class="cards-container stats-container">
             <div class="card">
                 <h3>Active Campaigns</h3>
                 <p style="font-size: 2.5rem; color: #f1c40f; margin-top: 10px;">{{ active_count }}</p>
@@ -59,10 +52,10 @@
         </div>
 
         {% if suggestions %}
-        <h3 style="border-bottom: 2px solid #e67e22; padding-bottom: 10px; display: inline-block;">✨ Top Creators in Your Niche</h3>
+        <h3 style="margin-top: 40px; border-bottom: 2px solid #e67e22; padding-bottom: 10px; display: inline-block;">✨ Top Creators in Your Niche</h3>
         <p style="color: #bdc3c7; margin-bottom: 20px;">Influencers matching your active campaign categories.</p>
         
-        <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 50px;">
+        <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 40px;">
             {% for inf in suggestions %}
             <div class="card" style="flex: 1; min-width: 250px; background: #2c3e50; border: 1px solid #4a6781; text-align: center;">
                 <div style="width: 80px; height: 80px; margin: 0 auto 15px auto; border-radius: 50%; overflow: hidden; border: 3px solid #2ecc71;">
@@ -103,7 +96,7 @@
                     <div style="flex-grow: 1;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
                             <h3 id="disp_brand_name" style="font-size: 2rem; margin-bottom: 5px;">{{ brand.Brandname }}</h3>
-                            <span style="background-color: #f1c40f; color: #2c3e50; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-family: 'Roboto', sans-serif;">Premium</span>
+                            <span style="background-color: #f1c40f; color: #2c3e50; padding: 5px 15px; border-radius: 20px; font-weight: bold;">Premium</span>
                         </div>
                         <p id="disp_rep_name" style="color: #bdc3c7; font-size: 1.1rem; margin-bottom: 20px;">Brand ID: {{ brand.BrandID }}</p>
 
@@ -241,19 +234,13 @@
 
     </div>
 
-    <footer>
-        <p>&copy; 2025 BrandConnect Marketplace</p>
-    </footer>
     <script src="/script.js"></script>
-    
     <script>
-
+        
         function updateStatus(appId, action) {
             if(!confirm(`Are you sure you want to mark this as ${action}?`)) return;
-
             const statusCell = document.getElementById(`status-${appId}`);
             const actionCell = document.getElementById(`actions-${appId}`);
-            
             statusCell.innerText = "Updating...";
             statusCell.style.color = "#bdc3c7";
 
@@ -266,16 +253,11 @@
             .then(data => {
                 if (data.success) {
                     statusCell.innerText = data.new_status;
-                    if(data.new_status === 'Approved') {
-                        statusCell.style.color = "#2ecc71";
-                        statusCell.style.fontWeight = "bold";
-                    } else {
-                        statusCell.style.color = "#e74c3c";
-                        statusCell.style.fontWeight = "bold";
-                    }
+                    statusCell.style.color = (data.new_status === 'Approved') ? "#2ecc71" : "#e74c3c";
+                    statusCell.style.fontWeight = "bold";
                     actionCell.innerHTML = '<span style="color: #bdc3c7;">Just Now</span>';
                 } else {
-                    alert("Error: " + data.message);
+                    alert("Error updating status: " + data.message);
                 }
             })
             .catch(error => {
@@ -283,6 +265,7 @@
                 alert("An unexpected error occurred.");
             });
         }
+
         function enableBrandEdit() {
             document.getElementById('brand-view').style.display = 'none';
             document.getElementById('brand-edit').style.display = 'block';
