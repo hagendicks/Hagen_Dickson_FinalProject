@@ -7,7 +7,7 @@ from werkzeug.utils import secure_filename
 import mysql.connector
 from db_connect import get_db_connection
 
-# 1. SETUP
+
 basedir = os.path.abspath(os.path.dirname(__file__))
 UPLOAD_FOLDER = os.path.join(basedir, 'static/uploads')
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
@@ -16,20 +16,11 @@ app = Flask(__name__, template_folder=basedir, static_folder=basedir)
 app.secret_key = 'super_secret_key'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
-# CONFIG: Remember Me Lifetime (30 Days)
+
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
 
-# ========================================================
-#  HELPER FUNCTION: VALIDATE PASSWORD
-# ========================================================
+
 def validate_password(password, username, email):
-    """
-    Validates password against:
-    - 8-12 chars
-    - Upper, Lower, Number, Special
-    - No Space
-    - Not containing username or email
-    """
     if len(password) < 8 or len(password) > 12:
         return "Password must be 8-12 characters long."
     if not re.search(r"[A-Z]", password):
@@ -42,23 +33,19 @@ def validate_password(password, username, email):
         return "Password must contain at least one special character."
     if " " in password:
         return "Password must not contain spaces."
-    
-    # Username/Email check (normalize to lowercase)
+
     if username and username.lower() in password.lower():
         return "Password cannot contain your username/handle."
     if email and email.lower() in password.lower():
         return "Password cannot contain your email."
-    
-    # Common Passwords check (Simple list)
+
     common_passwords = ['password', '12345678', 'qwertyuiop', 'admin123', 'pass1234']
     if password.lower() in common_passwords:
         return "This password is too common."
 
-    return None # Valid
+    return None
 
-# ========================================================
-#  STATIC ROUTES
-# ========================================================
+
 @app.route('/style.css')
 @app.route('/dashboard/style.css')
 @app.route('/campaigns/style.css')
@@ -75,9 +62,7 @@ def serve_images(filename): return send_from_directory(basedir, filename)
 @app.route('/static/uploads/<filename>')
 def serve_uploads(filename): return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
-# ========================================================
-#  AUTH ROUTES
-# ========================================================
+
 @app.route('/')
 def index(): return render_template('index.html')
 
@@ -140,7 +125,6 @@ def signup_select(): return render_template('signup.html')
 @app.route('/signup/influencer', methods=['GET', 'POST'])
 def signup_influencer():
     if request.method == 'POST':
-        # Get Inputs
         name = request.form.get('full_name')
         email = request.form.get('email')
         password = request.form.get('password')
@@ -148,16 +132,13 @@ def signup_influencer():
         handle = request.form.get('handle')
         industry = request.form.get('industry_name')
 
-        # 1. Check Matching Passwords
         if password != confirm_password:
             return "Error: Passwords do not match. <a href='/signup/influencer'>Try Again</a>"
 
-        # 2. Check Password Strength
         error = validate_password(password, handle, email)
         if error:
             return f"Error: {error} <a href='/signup/influencer'>Try Again</a>"
 
-        # 3. Hash & Save
         hashed_pw = generate_password_hash(password)
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -179,23 +160,19 @@ def signup_influencer():
 @app.route('/signup/brand', methods=['GET', 'POST'])
 def signup_brand():
     if request.method == 'POST':
-        # Get Inputs
         name = request.form.get('brand_name')
         email = request.form.get('email')
         password = request.form.get('password')
         confirm_password = request.form.get('confirm_password')
         budget = request.form.get('budget')
 
-        # 1. Check Matching Passwords
         if password != confirm_password:
             return "Error: Passwords do not match. <a href='/signup/brand'>Try Again</a>"
 
-        # 2. Check Password Strength
         error = validate_password(password, name, email)
         if error:
             return f"Error: {error} <a href='/signup/brand'>Try Again</a>"
 
-        # 3. Hash & Save
         hashed_pw = generate_password_hash(password)
         conn = get_db_connection()
         cursor = conn.cursor()
@@ -214,10 +191,6 @@ def signup_brand():
 
     return render_template('brand_signup.html')
 
-# ========================================================
-#  AJAX API ROUTES
-# ========================================================
-
 @app.route('/api/search')
 def api_search():
     query = request.args.get('q', '')
@@ -226,13 +199,11 @@ def api_search():
     results = []
     
     if query:
-        # Search Brands
         cursor.execute("SELECT BrandID as ID, Brandname as Name, LogoPic as Pic, 'Brand' as Role, PayPackage as Info FROM BRAND WHERE Brandname LIKE %s", (f"%{query}%",))
         brands = cursor.fetchall()
-        for b in brands: b['Info'] = f"Budget: {b['Info']}" # Format info
+        for b in brands: b['Info'] = f"Budget: {b['Info']}"
         results.extend(brands)
         
-        # Search Influencers
         cursor.execute("SELECT InfluencerID as ID, InfluencerName as Name, ProfilePic as Pic, 'Influencer' as Role, Industry as Info FROM INFLUENCER WHERE InfluencerName LIKE %s OR Handle LIKE %s", (f"%{query}%", f"%{query}%"))
         results.extend(cursor.fetchall())
     
@@ -282,11 +253,9 @@ def update_profile():
     cursor = conn.cursor()
     
     try:
-        # 1. Handle Text Data
         user_id = session['user_id']
         role = session['role']
         
-        # 2. Handle Image Upload
         file = request.files.get('profile_image')
         image_path = None
         
@@ -295,35 +264,59 @@ def update_profile():
             file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
             image_path = url_for('static', filename='uploads/' + filename)
 
-        # 3. Update Database based on Role
         if role == 'influencer':
+
+            name = request.form.get('name')
+            handle = request.form.get('handle')
+            industry = request.form.get('industry')
+            
+
             if image_path:
                 cursor.execute("UPDATE INFLUENCER SET ProfilePic = %s WHERE InfluencerID = %s", (image_path, user_id))
-            
-            # Example text update (assuming you send these fields later)
-            # bio = request.form.get('bio')
+                session['profile_pic'] = image_path
+
+            if name and handle and industry:
+                cursor.execute("""
+                    UPDATE INFLUENCER 
+                    SET InfluencerName = %s, Handle = %s, Industry = %s 
+                    WHERE InfluencerID = %s
+                """, (name, handle, industry, user_id))
+                
+                session['user_name'] = name 
 
         elif role == 'brand':
+
+            name = request.form.get('name')
+            email = request.form.get('email')
+            budget = request.form.get('budget')
+
+
             if image_path:
                 cursor.execute("UPDATE BRAND SET LogoPic = %s WHERE BrandID = %s", (image_path, user_id))
+                session['profile_pic'] = image_path
+            
+            if name and email and budget:
+                cursor.execute("""
+                    UPDATE BRAND 
+                    SET Brandname = %s, Email = %s, PayPackage = %s 
+                    WHERE BrandID = %s
+                """, (name, email, budget, user_id))
+                session['user_name'] = name
 
         conn.commit()
         
-        # Update Session Pic if changed
-        if image_path:
-            session['profile_pic'] = image_path
-            
-        return jsonify({'success': True, 'new_image': image_path})
+        return jsonify({
+            'success': True, 
+            'new_image': image_path,
+            'message': 'Profile updated successfully'
+        })
 
     except Exception as e:
-        print(e)
+        print(f"Update Error: {e}")
         return jsonify({'success': False, 'message': str(e)}), 500
     finally:
         conn.close()
 
-# ========================================================
-#  DASHBOARDS
-# ========================================================
 @app.route('/dashboard/influencer')
 def influencer_dashboard():
     if 'user_id' not in session or session['role'] != 'influencer': return redirect(url_for('login'))
@@ -370,10 +363,6 @@ def brand_dashboard():
     conn.close()
     return render_template('brand_dashboard.html', name=session['user_name'], active_count=active_count, applicants=applicants)
 
-# ========================================================
-#  SEARCH, FEED & POSTS
-# ========================================================
-
 @app.route('/search')
 def search():
     if 'user_id' not in session: return redirect(url_for('login'))
@@ -385,11 +374,9 @@ def search():
     results = []
     
     if query:
-        # Search Brands
         cursor.execute("SELECT BrandID as ID, Brandname as Name, LogoPic as Pic, 'Brand' as Role, PayPackage as Info FROM BRAND WHERE Brandname LIKE %s", (f"%{query}%",))
         results.extend(cursor.fetchall())
         
-        # Search Influencers
         cursor.execute("SELECT InfluencerID as ID, InfluencerName as Name, ProfilePic as Pic, 'Influencer' as Role, Industry as Info FROM INFLUENCER WHERE InfluencerName LIKE %s OR Handle LIKE %s", (f"%{query}%", f"%{query}%"))
         results.extend(cursor.fetchall())
     
@@ -401,7 +388,6 @@ def feed():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # 1. Fetch Campaigns
     cursor.execute("""
         SELECT c.CampaignID as ID, c.CampaignName as Title, c.StartDate as Date, 
         b.Brandname as AuthorName, b.LogoPic as AuthorPic, b.BrandID as AuthorID, 'Brand' as AuthorType,
@@ -413,12 +399,10 @@ def feed():
     """)
     campaigns = cursor.fetchall()
 
-    # Convert Campaign Date objects to Datetime objects
     for c in campaigns:
         if type(c['Date']) is date:
             c['Date'] = datetime.combine(c['Date'], datetime.min.time())
 
-    # 2. Fetch Posts
     cursor.execute("""
         SELECT p.PostID as ID, p.Content as Title, p.CreatedAt as Date, 
         CASE WHEN p.AuthorType = 'Brand' THEN b.Brandname ELSE i.InfluencerName END as AuthorName,
@@ -430,7 +414,6 @@ def feed():
     """)
     posts = cursor.fetchall()
 
-    # 3. Merge and Sort
     full_feed = sorted(campaigns + posts, key=lambda x: x['Date'], reverse=True)
     
     conn.close()
@@ -443,7 +426,6 @@ def create_post():
     image = request.files.get('image')
     image_url = None
     if image and image.filename != '':
-        # Use unique filename format to prevent overwrites
         filename = secure_filename(f"post_{session['user_id']}_{image.filename}")
         image.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
         image_url = url_for('static', filename='uploads/' + filename)
@@ -455,28 +437,23 @@ def create_post():
     conn.commit()
     conn.close()
     
-    # Redirect back to the profile page instead of feed
     if session['role'] == 'influencer':
         return redirect(url_for('profile'))
     else:
         return redirect(url_for('brand_profile_route'))
 
-# --- NEW: DELETE POST ROUTE (CRUD Requirement) ---
 @app.route('/post/delete/<int:post_id>', methods=['POST'])
 def delete_post(post_id):
-    # 1. Auth Check
     if 'user_id' not in session: return redirect(url_for('login'))
 
     conn = get_db_connection()
     cursor = conn.cursor()
 
     try:
-        # 2. Security Check: Verify Ownership
         cursor.execute("SELECT AuthorID FROM POSTS WHERE PostID = %s", (post_id,))
         post = cursor.fetchone()
 
         if post:
-            # Check if the session user is the author
             if post[0] == session['user_id']:
                 cursor.execute("DELETE FROM POSTS WHERE PostID = %s", (post_id,))
                 conn.commit()
@@ -492,15 +469,10 @@ def delete_post(post_id):
     finally:
         conn.close()
 
-    # 3. Redirect back to Profile
     if session.get('role') == 'influencer':
         return redirect(url_for('profile'))
     else:
         return redirect(url_for('brand_profile_route'))
-
-# ========================================================
-#  CAMPAIGN MANAGEMENT
-# ========================================================
 
 @app.route('/campaign/create', methods=['GET', 'POST'])
 def create_campaign():
@@ -555,15 +527,11 @@ def update_application_status(app_id, action):
     conn.close()
     return redirect(url_for('brand_dashboard'))
 
-# ========================================================
-#  MESSAGING & PROFILES
-# ========================================================
 @app.route('/user/<role>/<int:id>')
 def public_profile(role, id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
-    # Fetch User Details
     if role == 'Brand':
         cursor.execute("SELECT * FROM BRAND WHERE BrandID = %s", (id,))
         user = cursor.fetchone()
@@ -577,7 +545,6 @@ def public_profile(role, id):
         pic = user.get('ProfilePic')
         info = f"Industry: {user['Industry']} | Handle: {user['Handle']}"
 
-    # NEW: Fetch Posts for this user
     cursor.execute("""
         SELECT * FROM POSTS 
         WHERE AuthorID = %s AND AuthorType = %s 
@@ -610,8 +577,6 @@ def messages_inbox():
         p_type = msg['ReceiverType'] if is_me else msg['SenderType']
         
         if f"{p_type}_{p_id}" not in seen:
-            
-            # --- SQL INJECTION FIX (Refactored) ---
             p_name = "Unknown"
             if p_type == 'Brand':
                 cursor.execute("SELECT Brandname as Name FROM BRAND WHERE BrandID = %s", (p_id,))
@@ -655,7 +620,6 @@ def chat(partner_type, partner_id):
     """, (my_id, my_role, partner_id, partner_type, partner_id, partner_type, my_id, my_role))
     chat_history = cursor.fetchall()
     
-    # --- SQL INJECTION FIX (Refactored) ---
     p_name = "Unknown"
     if partner_type == 'Brand':
         cursor.execute("SELECT Brandname as Name FROM BRAND WHERE BrandID = %s", (partner_id,))
@@ -669,9 +633,6 @@ def chat(partner_type, partner_id):
     conn.close()
     return render_template('messages.html', inbox=None, active_chat=chat_history, partner_name=p_name, in_chat_mode=True, p_type=partner_type, p_id=partner_id)
 
-# ========================================================
-#  PAGES
-# ========================================================
 @app.route('/profile')
 def profile():
     if 'user_id' not in session: return redirect(url_for('login'))
@@ -681,7 +642,6 @@ def profile():
     cursor.execute("SELECT * FROM INFLUENCER WHERE InfluencerID = %s", (session['user_id'],))
     influencer = cursor.fetchone()
 
-    # NEW: Get Own Posts (With ID for deletion)
     cursor.execute("""
         SELECT * FROM POSTS 
         WHERE AuthorID = %s AND AuthorType = 'Influencer' 
@@ -699,11 +659,9 @@ def brand_profile_route():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     
-    # 1. Get Brand Details
     cursor.execute("SELECT * FROM BRAND WHERE BrandID = %s", (session['user_id'],))
     brand = cursor.fetchone()
 
-    # 2. Get Brand's Posts
     cursor.execute("""
         SELECT * FROM POSTS 
         WHERE AuthorID = %s AND AuthorType = 'Brand' 
@@ -712,7 +670,6 @@ def brand_profile_route():
     my_posts = cursor.fetchall()
 
     conn.close()
-    
     return render_template('brand_profile.html', brand=brand, posts=my_posts)
 
 @app.route('/my_applications.html')
@@ -749,7 +706,6 @@ def update_campaign_main_status(campaign_id, action):
     if 'user_id' not in session or session['role'] != 'brand':
         return redirect(url_for('login'))
     
-    # Validate action
     if action not in ['Active', 'Completed']:
         flash("Invalid status update.", "error")
         return redirect(url_for('manage_campaigns_route'))
@@ -758,7 +714,6 @@ def update_campaign_main_status(campaign_id, action):
     cursor = conn.cursor()
     
     try:
-        # Update the Campaign Status in the Database
         cursor.execute("""
             UPDATE CAMPAIGN 
             SET CampaignStatus = %s 
