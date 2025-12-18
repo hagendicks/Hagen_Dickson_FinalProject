@@ -39,7 +39,6 @@
             cursor: pointer;
         }
 
-        /* Action Buttons */
         .btn-action {
             padding: 5px 10px;
             font-size: 0.8rem;
@@ -174,8 +173,6 @@
         function closeModal() {
             document.getElementById('campaignModal').style.display = "none";
         }
-
-        // Close modal if user clicks outside of it
         window.onclick = function(event) {
             const modal = document.getElementById('campaignModal');
             if (event.target == modal) {
@@ -184,4 +181,5 @@
         }
     </script>
 </body>
+
 </html>
