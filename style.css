@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap');
+
 @keyframes gradientBG {
     0% {
         background-position: 0% 50%;
@@ -150,7 +152,7 @@ button,
 label,
 input,
 select {
-    font-family: 'Roboto', sans-serif;
+    font-family: 'Merriweather', serif;
     margin-bottom: 0.5rem;
 }
 
