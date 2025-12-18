@@ -106,28 +106,27 @@
                 <form onsubmit="saveBrandProfile(event)">
                     <div class="input-group">
                         <label>Company Logo</label>
-                        <input type="file" id="edit_brand_logo" accept="image/*" style="padding: 10px;">
+                        <input type="file" id="edit_brand_logo" name="profile_image" accept="image/*" style="padding: 10px;">
                     </div>
 
                     <div class="input-group">
                         <label>Brand Name</label>
-                        <input type="text" id="edit_brand_name" value="{{ brand.Brandname }}">
+                        <input type="text" id="edit_brand_name" name="name" value="{{ brand.Brandname }}">
                     </div>
 
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
                         <div class="input-group">
                             <label>Contact Email</label>
-                            <input type="email" id="edit_brand_email" value="{{ brand.Email }}">
+                            <input type="email" id="edit_brand_email" name="email" value="{{ brand.Email }}">
                         </div>
                         <div class="input-group">
                             <label>Avg. Budget (GHS)</label>
-                            <input type="number" id="edit_brand_budget" value="{{ brand.PayPackage }}">
+                            <input type="number" id="edit_brand_budget" name="budget" value="{{ brand.PayPackage }}">
                         </div>
                     </div>
 
                     <div style="margin-top: 20px; display: flex; gap: 15px;">
-                        <button type="submit" class="btn-login" style="background-color: #2ecc71;">Save Changes
-                            (Demo)</button>
+                        <button type="submit" class="btn-login" style="background-color: #2ecc71;">Save Changes</button>
                         <button type="button" onclick="cancelBrandEdit()" class="btn-login"
                             style="background-color: #7f8c8d;">Cancel</button>
                     </div>
