@@ -5,7 +5,7 @@
     <base href="/">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Brand Profile - BrandConnect</title>
+    <title>Brand Dashboard & Profile - BrandConnect</title>
     <link rel="stylesheet" href="/style.css">
     <link rel="icon" href="{{ url_for('static', filename='icon.png') }}" type="image/png">
 </head>
@@ -19,11 +19,12 @@
         <button class="menu-toggle" id="menuToggle">&#9776;</button>
         <nav>
             <ul>
-                <li><a href="{{ url_for('brand_dashboard') }}">Dashboard</a></li>
-                <li><a href="{{ url_for('brand_profile_route') }}" style="color: #e67e22;">Profile</a></li>
+                <li><a href="{{ url_for('brand_dashboard') }}" style="color: #e67e22;">Dashboard</a></li>
                 <li><a href="{{ url_for('create_campaign') }}">Post Campaign</a></li>
                 <li><a href="{{ url_for('feed') }}">Feed</a></li>
                 <li><a href="{{ url_for('manage_campaigns_route') }}">Manage</a></li>
+                <li><a href="{{ url_for('search') }}">Search</a></li>
+                <li><a href="{{ url_for('messages_inbox') }}">Messages</a></li>
             </ul>
         </nav>
         <a href="{{ url_for('logout') }}" class="btn-login">Logout</a>
@@ -41,36 +42,70 @@
             {% endif %}
         {% endwith %}
 
-        <h2 id="welcome-msg">Company Profile</h2>
-        <p class="subtitle">Manage your brand identity and billing details.</p>
+        <h2 id="welcome-msg">Welcome, {{ name }}!</h2>
+        <p class="subtitle">Overview of your marketing performance and profile.</p>
 
-        <div class="card"
-            style="margin-top: 30px; max-width: 800px; margin-left: auto; margin-right: auto; padding: 40px; margin-bottom: 40px;">
+        <div class="cards-container stats-container" style="margin-bottom: 40px;">
+            <div class="card">
+                <h3>Active Campaigns</h3>
+                <p style="font-size: 2.5rem; color: #f1c40f; margin-top: 10px;">{{ active_count }}</p>
+                <p>Live on the feed.</p>
+            </div>
+            <div class="card">
+                <h3>Total Applicants</h3>
+                <p style="font-size: 2.5rem; color: #3498db; margin-top: 10px;">{{ applicants|length }}</p>
+                <p>Across all campaigns.</p>
+            </div>
+        </div>
 
+        {% if suggestions %}
+        <h3 style="border-bottom: 2px solid #e67e22; padding-bottom: 10px; display: inline-block;">✨ Top Creators in Your Niche</h3>
+        <p style="color: #bdc3c7; margin-bottom: 20px;">Influencers matching your active campaign categories.</p>
+        
+        <div style="display: flex; gap: 20px; flex-wrap: wrap; margin-bottom: 50px;">
+            {% for inf in suggestions %}
+            <div class="card" style="flex: 1; min-width: 250px; background: #2c3e50; border: 1px solid #4a6781; text-align: center;">
+                <div style="width: 80px; height: 80px; margin: 0 auto 15px auto; border-radius: 50%; overflow: hidden; border: 3px solid #2ecc71;">
+                    {% if inf.ProfilePic %}
+                    <img src="{{ inf.ProfilePic }}" style="width: 100%; height: 100%; object-fit: cover;">
+                    {% else %}
+                    <div style="width: 100%; height: 100%; background: #bdc3c7; display: flex; align-items: center; justify-content: center; color: #2c3e50; font-weight: bold;">{{ inf.InfluencerName[0] }}</div>
+                    {% endif %}
+                </div>
+                <h4>{{ inf.InfluencerName }}</h4>
+                <p style="color: #f1c40f; margin-bottom: 5px;">{{ inf.Handle }}</p>
+                <p style="font-size: 0.9rem; color: #bdc3c7;">{{ inf.Industry }} • {{ inf.Followers }} Followers</p>
+                
+                <div style="margin-top: 15px; display: flex; justify-content: center; gap: 10px;">
+                    <a href="{{ url_for('public_profile', role='Influencer', id=inf.InfluencerID) }}" class="btn-login" style="padding: 5px 15px; font-size: 0.8rem;">View</a>
+                    <a href="{{ url_for('chat', partner_type='Influencer', partner_id=inf.InfluencerID) }}" class="btn-login" style="padding: 5px 15px; font-size: 0.8rem; background-color: #34495e;">Msg</a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <h3 style="border-bottom: 1px solid #4a6781; padding-bottom: 10px; margin-bottom: 20px;">Company Profile</h3>
+        <div class="card" style="margin-bottom: 50px; padding: 40px;">
+            
             <div id="brand-view">
                 <div style="display: flex; gap: 30px; align-items: start; flex-wrap: wrap;">
                     <div style="flex-shrink: 0;">
-                        <div id="logo-container"
-                            style="width: 150px; height: 150px; background-color: #ecf0f1; border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 2px solid #bdc3c7;">
+                        <div id="logo-container" style="width: 150px; height: 150px; background-color: #ecf0f1; border-radius: 10px; display: flex; align-items: center; justify-content: center; border: 2px solid #bdc3c7;">
                             {% if brand.LogoPic %}
-                            <img id="disp_brand_logo" src="{{ brand.LogoPic }}" alt="Brand Logo"
-                                style="width: 100%; height: 100%; object-fit: contain; border-radius: 10px;">
+                            <img id="disp_brand_logo" src="{{ brand.LogoPic }}" alt="Brand Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 10px;">
                             {% else %}
-                            <img id="disp_brand_logo" src="https://via.placeholder.com/150?text=Logo" alt="Brand Logo"
-                                style="width: 100%; height: 100%; object-fit: contain; border-radius: 10px;">
+                            <img id="disp_brand_logo" src="https://via.placeholder.com/150?text=Logo" alt="Brand Logo" style="width: 100%; height: 100%; object-fit: contain; border-radius: 10px;">
                             {% endif %}
                         </div>
                     </div>
 
                     <div style="flex-grow: 1;">
                         <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <h3 id="disp_brand_name" style="font-size: 2rem; margin-bottom: 5px;">{{ brand.Brandname }}
-                            </h3>
-                            <span
-                                style="background-color: #f1c40f; color: #2c3e50; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-family: 'Roboto', sans-serif;">Premium</span>
+                            <h3 id="disp_brand_name" style="font-size: 2rem; margin-bottom: 5px;">{{ brand.Brandname }}</h3>
+                            <span style="background-color: #f1c40f; color: #2c3e50; padding: 5px 15px; border-radius: 20px; font-weight: bold; font-family: 'Roboto', sans-serif;">Premium</span>
                         </div>
-                        <p id="disp_rep_name" style="color: #bdc3c7; font-size: 1.1rem; margin-bottom: 20px;">Brand ID:
-                            {{ brand.BrandID }}</p>
+                        <p id="disp_rep_name" style="color: #bdc3c7; font-size: 1.1rem; margin-bottom: 20px;">Brand ID: {{ brand.BrandID }}</p>
 
                         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 25px;">
                             <div>
@@ -78,19 +113,9 @@
                                 <span id="disp_brand_email" style="font-size: 1.1rem;">{{ brand.Email }}</span>
                             </div>
                             <div>
-                                <label style="color: #bdc3c7; display: block; font-size: 0.9rem;">Avg. Campaign
-                                    Budget</label>
-                                <span id="disp_brand_budget"
-                                    style="font-size: 1.1rem; color: #2ecc71; font-weight: bold;">GHS {{
-                                    brand.PayPackage }}</span>
+                                <label style="color: #bdc3c7; display: block; font-size: 0.9rem;">Avg. Campaign Budget</label>
+                                <span id="disp_brand_budget" style="font-size: 1.1rem; color: #2ecc71; font-weight: bold;">GHS {{ brand.PayPackage }}</span>
                             </div>
-                        </div>
-
-                        <div style="border-top: 1px solid #4a6781; padding-top: 20px;">
-                            <h4 style="color: #ecf0f1; margin-bottom: 10px;">Company Bio</h4>
-                            <p id="disp_brand_bio" style="color: #bdc3c7;">
-                                (Bio not currently stored in database)
-                            </p>
                         </div>
 
                         <div style="margin-top: 30px;">
@@ -101,8 +126,7 @@
             </div>
 
             <div id="brand-edit" style="display: none;">
-                <h3 style="border-bottom: 1px solid #4a6781; padding-bottom: 10px; margin-bottom: 20px;">Edit Company
-                    Details</h3>
+                <h3 style="border-bottom: 1px solid #4a6781; padding-bottom: 10px; margin-bottom: 20px;">Edit Company Details</h3>
                 <form onsubmit="saveBrandProfile(event)">
                     <div class="input-group">
                         <label>Company Logo</label>
@@ -127,32 +151,67 @@
 
                     <div style="margin-top: 20px; display: flex; gap: 15px;">
                         <button type="submit" class="btn-login" style="background-color: #2ecc71;">Save Changes</button>
-                        <button type="button" onclick="cancelBrandEdit()" class="btn-login"
-                            style="background-color: #7f8c8d;">Cancel</button>
+                        <button type="button" onclick="cancelBrandEdit()" class="btn-login" style="background-color: #7f8c8d;">Cancel</button>
                     </div>
                 </form>
             </div>
         </div>
 
+        <h3 style="border-bottom: 1px solid #4a6781; padding-bottom: 10px; margin-bottom: 20px;">Recent Applicants</h3>
+        <table class="data-table" style="margin-bottom: 50px;">
+            <thead>
+                <tr>
+                    <th>Influencer</th>
+                    <th>Campaign</th>
+                    <th>Followers</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in applicants %}
+                <tr id="row-{{ app.CAM_ID }}">
+                    <td>
+                        <div style="font-weight: bold;">
+                            <a href="{{ url_for('public_profile', role='Influencer', id=app.InfluencerID) }}" style="color: #ecf0f1; text-decoration: underline;">
+                                {{ app.InfluencerName }}
+                            </a>
+                        </div>
+                        <div style="font-size: 0.85rem; color: #bdc3c7;">{{ app.Handle }}</div>
+                    </td>
+                    <td>{{ app.CampaignName }}</td>
+                    <td>{{ app.Followers }}</td>
+                    <td id="status-{{ app.CAM_ID }}" class="status-{{ app.CampaignStatus|lower }}">
+                        {{ app.CampaignStatus }}
+                    </td>
+                    <td id="actions-{{ app.CAM_ID }}">
+                        {% if app.CampaignStatus == 'Pending' %}
+                        <button onclick="updateStatus({{ app.CAM_ID }}, 'Approved')" style="background: none; border: none; cursor: pointer; color: #2ecc71; font-size: 1.2rem;" title="Approve">✅</button>
+                        <button onclick="updateStatus({{ app.CAM_ID }}, 'Rejected')" style="background: none; border: none; cursor: pointer; color: #e74c3c; font-size: 1.2rem; margin-left: 10px;" title="Reject">❌</button>
+                        {% else %}
+                        <span style="color: #bdc3c7;">Decided</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr><td colspan="5">No applications received yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
         <div style="max-width: 600px; margin: 0 auto;">
-            
             <h3 style="margin-bottom: 15px;">Post Brand Update</h3>
             <div class="create-post-container">
-                <div class="avatar-small"
-                    style="background-image: url('{{ session.get('profile_pic', '') }}'); background-size: cover;">
-                </div>
-                <form action="{{ url_for('create_post') }}" method="POST" enctype="multipart/form-data"
-                    style="width: 100%; display: flex; gap: 10px;">
-                    <input type="text" name="content" class="create-input" placeholder="Share news or updates..."
-                        required>
+                <div class="avatar-small" style="background-image: url('{{ session.get('profile_pic', '') }}'); background-size: cover;"></div>
+                <form action="{{ url_for('create_post') }}" method="POST" enctype="multipart/form-data" style="width: 100%; display: flex; gap: 10px;">
+                    <input type="text" name="content" class="create-input" placeholder="Share news or updates..." required>
                     <input type="file" name="image" id="b_file" style="display: none;">
-                    <label for="b_file"
-                        style="cursor: pointer; padding: 10px; background: #3a3b3c; border-radius: 50%;">📷</label>
+                    <label for="b_file" style="cursor: pointer; padding: 10px; background: #3a3b3c; border-radius: 50%;">📷</label>
                     <button type="submit" class="btn-login" style="padding: 5px 15px;">Post</button>
                 </form>
             </div>
 
-            <h3 style="margin-bottom: 15px;">Company Posts</h3>
+            <h3 style="margin-bottom: 15px;">Company Timeline</h3>
             {% for post in posts %}
             <div class="post-card">
                 <div class="post-header">
@@ -186,6 +245,90 @@
         <p>&copy; 2025 BrandConnect Marketplace</p>
     </footer>
     <script src="/script.js"></script>
-</body>
+    
+    <script>
 
+        function updateStatus(appId, action) {
+            if(!confirm(`Are you sure you want to mark this as ${action}?`)) return;
+
+            const statusCell = document.getElementById(`status-${appId}`);
+            const actionCell = document.getElementById(`actions-${appId}`);
+            
+            statusCell.innerText = "Updating...";
+            statusCell.style.color = "#bdc3c7";
+
+            fetch('/api/application/status', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ app_id: appId, action: action })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    statusCell.innerText = data.new_status;
+                    if(data.new_status === 'Approved') {
+                        statusCell.style.color = "#2ecc71";
+                        statusCell.style.fontWeight = "bold";
+                    } else {
+                        statusCell.style.color = "#e74c3c";
+                        statusCell.style.fontWeight = "bold";
+                    }
+                    actionCell.innerHTML = '<span style="color: #bdc3c7;">Just Now</span>';
+                } else {
+                    alert("Error: " + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("An unexpected error occurred.");
+            });
+        }
+        function enableBrandEdit() {
+            document.getElementById('brand-view').style.display = 'none';
+            document.getElementById('brand-edit').style.display = 'block';
+        }
+
+        function cancelBrandEdit() {
+            document.getElementById('brand-edit').style.display = 'none';
+            document.getElementById('brand-view').style.display = 'block';
+        }
+        function saveBrandProfile(event) {
+            event.preventDefault();
+            const btn = event.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerText;
+            btn.innerText = "Saving...";
+
+            const formData = new FormData(event.target);
+
+            fetch('/api/update_profile', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    document.getElementById('disp_brand_name').innerText = document.getElementById('edit_brand_name').value;
+                    document.getElementById('disp_brand_email').innerText = document.getElementById('edit_brand_email').value;
+                    document.getElementById('disp_brand_budget').innerText = "GHS " + document.getElementById('edit_brand_budget').value;
+                    
+                    if (data.new_image) {
+                        document.getElementById('disp_brand_logo').src = data.new_image;
+                    }
+
+                    cancelBrandEdit();
+                    alert("Brand profile updated successfully!");
+                } else {
+                    alert("Error: " + data.message);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert("An error occurred.");
+            })
+            .finally(() => {
+                btn.innerText = originalText;
+            });
+        }
+    </script>
+</body>
 </html>
