@@ -273,24 +273,20 @@ def influencer_dashboard():
     conn.close()
     return render_template('influencer_dashboard.html', name=session['user_name'], active_count=active_count, applications=recent_apps, recommendations=recommendations)
 
-# === MERGED DASHBOARD ROUTE ===
 @app.route('/dashboard/brand')
 def brand_dashboard():
     if 'user_id' not in session or session['role'] != 'brand': return redirect(url_for('login'))
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
 
-    # 1. Stats
     cursor.execute("SELECT COUNT(*) as count FROM CAMPAIGN WHERE BrandID = %s AND CampaignStatus = 'Active'", (session['user_id'],))
     active_count = cursor.fetchone()['count']
 
-    # 2. Applicants
     cursor.execute("""SELECT ic.CAM_ID, i.InfluencerID, i.InfluencerName, i.Handle, i.Followers, c.CampaignName, ic.CampaignStatus 
                       FROM INFLUENCER_CAMPAIGN ic JOIN INFLUENCER i ON ic.InfluencerID = i.InfluencerID JOIN CAMPAIGN c ON ic.CampaignID = c.CampaignID 
                       WHERE c.BrandID = %s ORDER BY ic.StartDate DESC LIMIT 10""", (session['user_id'],))
     applicants = cursor.fetchall()
 
-    # 3. Matching
     cursor.execute("SELECT DISTINCT i.Industryname FROM CAMPAIGN c JOIN INDUSTRY i ON c.IndustryID = i.IndustryID WHERE c.BrandID = %s AND c.CampaignStatus = 'Active'", (session['user_id'],))
     active_industries = [row['Industryname'] for row in cursor.fetchall()]
     suggestions = []
@@ -300,21 +296,17 @@ def brand_dashboard():
         cursor.execute(query, tuple(active_industries))
         suggestions = cursor.fetchall()
 
-    # 4. Brand Profile
     cursor.execute("SELECT * FROM BRAND WHERE BrandID = %s", (session['user_id'],))
     brand = cursor.fetchone()
 
-    # 5. Brand Posts
     cursor.execute("SELECT * FROM POSTS WHERE AuthorID = %s AND AuthorType = 'Brand' ORDER BY CreatedAt DESC", (session['user_id'],))
     posts = cursor.fetchall()
 
-    # 6. Campaigns (for Manage Tab)
     cursor.execute("SELECT * FROM CAMPAIGN WHERE BrandID = %s ORDER BY StartDate DESC", (session['user_id'],))
     my_campaigns = cursor.fetchall()
 
     conn.close()
     
-    # Get active tab from URL query param (default to overview)
     active_tab = request.args.get('tab', 'overview')
     
     return render_template('brand_dashboard.html', 
@@ -327,14 +319,13 @@ def brand_dashboard():
                            campaigns=my_campaigns,
                            active_tab=active_tab)
 
-# === REDIRECT OLD ROUTES TO DASHBOARD ===
 @app.route('/brand_profile.html')
 def brand_profile_route(): return redirect(url_for('brand_dashboard', tab='profile'))
 
 @app.route('/manage_campaigns.html')
 def manage_campaigns_route(): return redirect(url_for('brand_dashboard', tab='manage'))
 
-@app.route('/create_campaign.html') # Legacy direct link support
+@app.route('/create_campaign.html')
 def create_campaign_page(): return redirect(url_for('brand_dashboard', tab='create'))
 
 @app.route('/feed')
@@ -460,11 +451,9 @@ def delete_post(post_id):
 def create_campaign():
     if 'user_id' not in session or session['role'] != 'brand': return redirect(url_for('login'))
     
-    # GET request: redirect to dashboard Create tab
     if request.method == 'GET':
         return redirect(url_for('brand_dashboard', tab='create'))
 
-    # POST request: process the form
     conn = get_db_connection()
     cursor = conn.cursor()
     cursor.execute("SELECT IndustryID FROM INDUSTRY WHERE Industryname = %s", (request.form.get('industry_name'),))
@@ -503,7 +492,6 @@ def update_campaign_main_status(campaign_id, action):
 
 @app.route('/application/<int:app_id>/<action>')
 def update_application_status(app_id, action):
-    # This route is mostly used by JS fetch, but good for fallback
     if 'user_id' not in session or session['role'] != 'brand': return redirect(url_for('login'))
     if action not in ['Approved', 'Rejected']: return redirect(url_for('brand_dashboard'))
     conn = get_db_connection()
@@ -571,3 +559,4 @@ def favicon():
 
 if __name__ == '__main__':
     app.run(debug=True, host='127.0.0.1', port=5000)
+
