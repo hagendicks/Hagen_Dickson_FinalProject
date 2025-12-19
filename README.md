@@ -35,3 +35,7 @@ Configuration: Open db_connect.py and ensure the database credentials (user, pas
 Start the Server: Run the app.py file using Python. You will see the Flask server start on port 5000.
 Access: Open your web browser and go to the local host address provided in the terminal. You should see the index.html landing page.
 Usage: Navigate to the Signup page and create a test Brand account and a test Influencer account. Log in as the Brand to post a campaign, then log in as the Influencer to apply for it. Return to the Brand dashboard to approve the application and view the generated contract.
+
+USE OF AI
+AI  was used in the creation of dummy data for the website.
+AI was also used to give suggestion on how to improve the css and javascript functions of the website.
